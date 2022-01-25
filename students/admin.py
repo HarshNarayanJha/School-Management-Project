@@ -16,6 +16,8 @@ class ResultInline(nested_admin.NestedStackedInline):
     readonly_fields = ("exam",)
     inlines = [MarksInline]
 
+    # The maximium number of results to be shown in a student's page
+    # is **safely** equal to the no. of results of that student
     def get_max_num(self, request, obj=None, **kwargs):
         if obj is None:
             return 0
@@ -24,7 +26,7 @@ class ResultInline(nested_admin.NestedStackedInline):
 
 class StudentAdmin(nested_admin.NestedModelAdmin):
     list_display = ("full_name","first_name", "last_name", "uid", "dob", "cls", "roll")
-    ordering = ("cls",)
+    ordering = ("cls","roll")
     list_filter = ("cls",)
     search_fields = ("first_name", "last_name", "uid", "dob")
 

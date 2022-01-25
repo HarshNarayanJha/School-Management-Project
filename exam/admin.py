@@ -18,6 +18,8 @@ class ResultsInline(nested_admin.NestedTabularInline):
     formset = ResultsInlineFormSet
     inlines = [MarksInline]
 
+    # Probably want this, but the issue with this is that
+    # not yet saved Result instances will have a - (dash) inplace of student name...
     # readonly_fields = ("student",)
 
     # We don't want the teacher to accidently sort Results up and down 
