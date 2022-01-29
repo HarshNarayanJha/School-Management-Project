@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    School Management | Students
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <div class="card">
+        <h1>Students</h1>
+        {% if students %}
+            {% for student in students %}
+
+            <div id="{{ forloop.counter }}" class="border rounded p-card text-monospace">
+                <a href="/admin/students/student/{{ student.uid }}/" target="_blank" class="text-primary font-size-24">{{ forloop.counter }}. {{ student.full_name }}</a>
+                <p>First Name: {{ student.first_name }}</p>
+                <p>Last Name: {{ student.last_name }}</p>
+
+                <div class="sidebar-divider"></div>
+
+                <p>UID Number: {{ student.uid }}</p>
+                <p>Date of Birth: {{ student.dob }}</p>
+                <p>Date of Addmission: {{ student.doa }}</p>
+                <p>Aadhar Number: {{ student.aadhar_number }}</p>
+                <p>Phone Number: {{ student.phone_number }}</p>
+
+                <div class="sidebar-divider"></div>
+
+                <p>Class: {{ student.cls }}</p>
+                <p>Roll: {{ student.roll }}</p>
+            </div>
+
+            {% endfor %}
+        {% else %}
+            <p>No students added yet...</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

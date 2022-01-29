@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{% static 'css/halfmoon/halfmoon-variables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fontawesome/css/all.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ionicons/ionicons.css' %}">
+    {% block css %}
+    
+    {% endblock css %}
+
+    <title>
+    {% block title %}
+        
+    {% endblock title %}
+    </title>
+
+</head>
+<body data-set-preferred-mode-onload="true">
+    <div class="page-wrapper with-navbar with-navbar-fixed-bottom with-sidebar">
+    {% include 'navbar.html' %}
+    {% include 'sidebar.html' %}
+
+        <div class="content-wrapper">
+        {% block content %}
+
+        {% endblock content %}
+        </div>
+
+        <nav class="navbar navbar-fixed-bottom">
+            <div class="navbar-content">
+            </div>
+            <p class="navbar-text ml-auto mr-auto">
+                Made with &nbsp;<span class="text-danger">❤</span>&nbsp; by &nbsp;<a href="https://github.com/HarshNarayanJha">Harsh Narayan Jha</a>
+            </p>
+        </nav>
+    </div>
+
+    <script src="{% static 'js/jquery-3.5.1.js' %}"></script>
+    <script src="{% static 'js/halfmoon/halfmoon.min.js' %}"></script>
+
+    {% block scripts %}
+    
+    {% endblock scripts %}
+</body>
+</html>

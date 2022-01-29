@@ -1,0 +1,133 @@
+{
+	// Place your school_management workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+
+	"Django Url": {
+		"scope": "html",
+		"prefix": "url",
+		"body": "{% url '$1' %}$0",
+	},
+
+	"Context Variable": {
+		"scope": "html",
+		"prefix": "var.context",
+		"body": "{{ $0 }}",
+	},
+
+	"Extends Base": {
+		"scope": "html",
+		"prefix": "extends.base",
+		"body": [
+			"{% extends 'base.html' %}",
+			"$0",
+		],
+	},
+
+	"Include Template": {
+		"scope": "html",
+		"prefix": "include.template",
+		"body": "{% include '$0' %}",
+	},
+
+	"Load Static": {
+		"scope": "html",
+		"prefix": "load.static",
+		"body": [
+			"{% load static %}",
+			"$0",
+		],
+	},
+
+	"Static File": {
+		"scope": "html",
+		"prefix": "static.file",
+		"body": "{% static '$0' %}",
+	},
+
+	"Block CSS": {
+		"scope": "html",
+		"prefix": "block.css",
+		"body": [
+			"{% block css %}",
+			"$0",
+			"{% endblock css %}",
+		],
+	},
+
+	"Block Title": {
+		"scope": "html",
+		"prefix": "block.title",
+		"body": [
+			"{% block title %}",
+			"\t$0",
+			"{% endblock title %}",
+		],
+	},
+
+	"Block Style": {
+		"scope": "html",
+		"prefix": "block.style",
+		"body": [
+			"{% block style %}",
+			"$0",
+			"{% endblock style %}",
+		],
+	},
+
+	"Block Content": {
+		"scope": "html",
+		"prefix": "block.content",
+		"body": [
+			"{% block content %}",
+			"$0",
+			"{% endblock content %}",
+		],
+	},
+
+	"Block Script": {
+		"scope": "html",
+		"prefix": "block.scripts",
+		"body": [
+			"{% block scripts %}",
+			"$0",
+			"{% endblock scripts %}",
+		],
+	},
+
+
+	"If Block": {
+		"scope": "html",
+		"prefix": "if.block",
+		"body": [
+			"{% if $1 %}",
+			"\t$0",
+			"{% endif %}",
+		]
+	},
+
+	"If-Else Block": {
+		"scope": "html",
+		"prefix": "if.else.block",
+		"body": [
+			"{% if $1 %}",
+			"\t$2",
+			"{% else %}",
+			"\t$0",
+			"{% endif %}",
+		]
+	}
+}

@@ -1,0 +1,31 @@
+<div class="sidebar">
+
+    <div class="sidebar-menu">
+      <a href="{% url 'students:home' %}" class="sidebar-brand">
+        <!-- <img src="..." alt="..."> -->
+        School Management System
+      </a>
+
+      <div class="sidebar-content">
+          
+      </div>
+      
+      <h5 class="sidebar-title"><a href="{% url 'students:home' %}" class="text-light-dm">Students</a></h5>
+      <div class="sidebar-divider"></div>
+      <!-- <a href="{% url 'students:home' %}" class="sidebar-link">Students</a> -->
+      <a href="{% url 'students:students' %}" class="sidebar-link">Students</a>
+      <a href="/admin/students/student" class="sidebar-link">Students (Admin)</a>
+      <a href="/admin/students/student/add/" class="sidebar-link">Add Student</a>
+
+      <br />
+
+      <h5 class="sidebar-title"><a href="{% url 'exam:home' %}" class="text-light-dm">Exams</a></h5>
+      <div class="sidebar-divider"></div>
+      <a href="{% url 'exam:home' %}" class="sidebar-link">Exam Home</a>
+      <!-- <a href="{% url 'exam:home' %}" class="sidebar-link">Exams</a> -->
+      <a href="/admin/exam/exam/" class="sidebar-link">Exams (Admin)</a>
+      <a href="/admin/exam/exam/add/" class="sidebar-link">Add Exam</a>
+      <!-- <a href="#" class="sidebar-link">Map</a> -->
+      <!-- <a href="#" class="sidebar-link">Messenger</a> -->
+    </div>
+  </div>

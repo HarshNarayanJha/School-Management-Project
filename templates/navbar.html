@@ -1,0 +1,55 @@
+<nav class="navbar">
+    
+  <button class="btn sidebar-overlay" onclick="halfmoon.toggleSidebar()">
+    <span class="ion ion-android-menu"></span>
+  </button>
+  
+  <a href="{% url 'students:home' %}" class="navbar-brand">
+    School Management System
+  </a>
+  
+  <span class="navbar-text text-monospace">v0.1 (under development)</span>
+  
+  <ul class="navbar-nav ml-auto d-none d-md-flex">
+    <li class="nav-item">
+      <a href="{% url 'students:home' %}" class="nav-link">Home</a>
+    </li>
+    <li class="nav-item">
+      <a href="{% url 'students:students' %}" class="nav-link">Students</a>
+    </li>
+    <li class="nav-item">
+      <a href="{% url 'exam:home' %}" class="nav-link">Exam</a>
+    </li>
+
+    <div class="dropdown with-arrow">
+      <button class="btn" data-toggle="dropdown" type="button" id="navbar-dropdown">
+        Menu
+        <i class="fa fa-angle-down" aria-hidden="true"></i>
+      </button>
+      <div class="dropdown-menu dropdown-menu-right w-200" aria-labelledby="navbar-dropdown">
+        <a href="#" class="dropdown-item">Link 3</a>
+        <a href="#" class="dropdown-item">Link 4</a>
+        <div class="dropdown-divider"></div>
+        <button class="btn btn-block" onclick="halfmoon.toggleDarkMode()">Dark Mode</button>
+      </div>
+    </div>
+  </ul>
+
+  <div class="navbar-content d-md-none ml-auto">
+    <div class="dropdown with-arrow">
+      <button class="btn" data-toggle="dropdown" type="button" id="navbar-dropdown">
+        Menu
+        <i class="fa fa-angle-down" aria-hidden="true"></i>
+      </button>
+      <div class="dropdown-menu dropdown-menu-right w-200" aria-labelledby="navbar-dropdown">
+        <a href="{% url 'students:home' %}" class="dropdown-item">Home</a>
+        <a href="{% url 'students:students' %}" class="dropdown-item">Students</a>
+        <a href="{% url 'exam:home' %}" class="dropdown-item">Exam</a>
+        <div class="navbar-divider"></div>
+        <button class="btn btn-block" onclick="halfmoon.toggleDarkMode()">Dark Mode</button>
+        <div class="dropdown-divider"></div>
+      </div>
+    </div>
+  </div>
+
+  </nav>

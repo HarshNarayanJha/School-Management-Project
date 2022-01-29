@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+    {% block title %}
+        School Management | Home
+    {% endblock title %}
+
+    {% block content %}
+    <div class="content">
+        <h1 class="">Welcome to the School Management System</h1>
+        <!-- <div><a href="/admin">Go to Admin</a></div> -->
+
+        <div class="card">
+            <p class="text-monospace font-size-18">
+            The class teacher will create a new Exam, enter the primary details (exam name, session, class), and save it.
+            (hence: if one exam is conducted in multiple classes together, then each class will have its own exam under the same name),
+            <kbd>save and continue editing</kbd> it, then all the students in that class
+            will be pre-poulated in the Results section, and each subject teacher just has to enter the marks of each student.
+            <br>
+            Each student page is also acquired by a Results section, in which each Exam is listed together with that students Marks
+            <br>
+            We can create students, teacher etc. I am planning to create an csv parser for easy students creation...
+            <br>
+            Next goal is to hookup Teacher creation wth Django User system, so that we can authenticate Teachers.
+            </p>
+        </div>
+
+        <!-- <div class="card">
+            <h5 class="card-title">Dev Links</h5>
+            <div class="card-content">
+                <div><a href="{% url 'students:students' %}">Students Page</a></div>
+                <div><a href="{% url 'exam:home' %}">Exams Home</a></div>
+            </div>
+        </div> -->
+    </div>
+
+    {% endblock content %}
