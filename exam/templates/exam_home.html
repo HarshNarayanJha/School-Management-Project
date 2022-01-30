@@ -1,11 +1,23 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 <div class="content">
     <div class="card">
         <h5 class="card-title">
             Exam Home Page (under construction)
         </h5>
+    </div>
+    <div class="card">
+        <h5 class="card-title">
+            Bulk Upload Students via CSV File
+        </h5>
+        <form method="POST" action="{% url 'exam:uploadStudents' %}" class="post-form" enctype="multipart/form-data">  
+            {% csrf_token %}  
+            <input type="File" name="file" id="file"/> 
+            <button type="submit" class="save btn btn-default">Upload File</button>  
+    </form>
+        <hr>
+        <a href="{% static 'samplefile/Sample_File.csv' %}"><h6>Click To Download CSV Sample Template For Data Uploading</h6></a>
     </div>
 </div>
 {% endblock content %}
