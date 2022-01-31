@@ -9,123 +9,31 @@
     <div class="card">
         <h1>Students</h1>
         {% if students %}
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr style="color: #0be888;background-color: #17312d;border-color: #0d8956;">
-                  <th class="text-center">SN</th>
-                  <th class="text-center">UID</th>
-                  <th class="text-center">Roll No.</th>
-                  <th class="text-center">Name</th>
-                  <th class="text-center">Class</th>
-                  <th class="text-center">Date of Birth</th>
-                  <th class="text-center">Date of Admission</th>
-                  <th class="text-center">Phone</th>
-                  <th class="text-center">Aadhar No.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for student in students %}
-                <tr>
-                  <th>{{ forloop.counter }}</th>
-                  <th>{{ student.uid }}</th>
-                  <th>{{ student.roll }}</th>
-                  <th>{{ student.student_name }}</th>
-                  <th>{{ student.cls }}</th>
-                  <th>{{ student.dob }}</th>
-                  <th>{{ student.doa }}</th>
-                  <th>{{ student.phone_number }}</th>
-                  <th>{{ student.aadhar_number }}</th>
-                </tr>
-                {% endfor %}
-                </tody>
-        </table>
+            {% for student in students %}
+
+            <div id="{{ forloop.counter }}" class="border rounded p-card text-monospace">
+                <a href="/admin/students/student/{{ student.uid }}/" target="_blank" class="text-primary font-size-24">{{ forloop.counter }}. {{ student.full_name }}</a>
+                <p>First Name: {{ student.first_name }}</p>
+                <p>Last Name: {{ student.last_name }}</p>
+
+                <div class="sidebar-divider"></div>
+
+                <p>UID Number: {{ student.uid }}</p>
+                <p>Date of Birth: {{ student.dob }}</p>
+                <p>Date of Addmission: {{ student.doa }}</p>
+                <p>Aadhar Number: {{ student.aadhar_number }}</p>
+                <p>Phone Number: {{ student.phone_number }}</p>
+
+                <div class="sidebar-divider"></div>
+
+                <p>Class: {{ student.cls }}</p>
+                <p>Roll: {{ student.roll }}</p>
+            </div>
+
+            {% endfor %}
         {% else %}
             <p>No students added yet...</p>
         {% endif %}
-        
-        {% if students.has_other_pages %}
-            <ul class="pagination text-center">
-              <!-- Previous page -->
-              {% if students.has_previous %}
-              <li class="page-item">
-                <a href="?page={{ students.previous_page_number }}" class="page-link">
-                  <i class="fa fa-angle-left" aria-hidden="true"></i>
-                  <span class="sr-only">Previous</span> <!-- sr-only = only for screen readers -->
-                </a>
-              </li>
-              {% if students.number > 3 %}
-              <li class="page-item">
-                <a href="?page=1" class="page-link">
-                  1
-                  <span class="sr-only">1</span> <!-- sr-only = only for screen readers -->
-                </a>
-              </li>
-              {% if students.number > 4 %}
-              <li class="page-item ellipsis"></li>
-              {% endif %}
-              {% endif %}
-              {% else %}
-              <li class="page-item disabled">
-                <a href="#" class="page-link">
-                  <i class="fa fa-angle-left" aria-hidden="true"></i>
-                  <span class="sr-only">Previous</span> <!-- sr-only = only for screen readers -->
-                </a>
-              </li>
-              {% endif %}
-              
-              {% for i in students.paginator.page_range %}
-      {% if students.number == i %}
-      <li class="page-item active"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-      {% elif i > students.number|add:'-3' and i < students.number|add:'3' %}
-        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-      {% endif %}
-    {% endfor %}
-    {% if students.has_next %}
-    {% if students.number < students.paginator.num_pages|add:'-3' %}
-    <li class="page-item ellipsis"></li>
-    <li class="page-item">
-        <a href="?page={{ students.paginator.num_pages }}" class="page-link">
-          {{ students.paginator.num_pages }}
-          <span class="sr-only">Next</span> <!-- sr-only = only for screen readers -->
-        </a>
-      </li>
-        {% if students.has_next %}
-    <li class="page-item">
-        <a href="?page={{ students.next_page_number }}" class="page-link">
-          <i class="fa fa-angle-right" aria-hidden="true"></i>
-          <span class="sr-only">Next</span> <!-- sr-only = only for screen readers -->
-        </a>
-      </li>
-      {% endif %}
-      {% endif %}
-    {% else %}
-    <li class="page-item disabled">
-        <a href="#" class="page-link">
-          <i class="fa fa-angle-right" aria-hidden="true"></i>
-          <span class="sr-only">Next</span> <!-- sr-only = only for screen readers -->
-        </a>
-      </li>
-    {% endif %}
-        {% comment %} <ul class="pagination">
-    {% if students.has_previous %}
-      <li><a href="?page={{ students.previous_page_number }}">&laquo;</a></li>
-    {% else %}
-      <li class="disabled"><span>&laquo;</span></li>
-    {% endif %}
-    {% for i in students.paginator.page_range %}
-      {% if students.number == i %}
-        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
-      {% else %}
-        <li><a href="?page={{ i }}">{{ i }}</a></li>
-      {% endif %}
-    {% endfor %}
-    {% if students.has_next %}
-      <li><a href="?page={{ students.next_page_number }}">&raquo;</a></li>
-    {% else %}
-      <li class="disabled"><span>&raquo;</span></li>
-    {% endif %}
-  </ul> {% endcomment %}
-{% endif %}
     </div>
 </div>
 {% endblock content %}
