@@ -25,7 +25,7 @@ class ResultInline(nested_admin.NestedStackedInline):
         return Result.objects.filter(student=obj).count()
 
 class StudentAdmin(nested_admin.NestedModelAdmin):
-    list_display = ("full_name","first_name", "last_name", "uid", "dob", "cls", "roll")
+    list_display = ("student_name", "uid", "dob", "cls", "roll")
     ordering = ("cls","roll")
     list_filter = ("cls",)
     search_fields = ("first_name", "last_name", "uid", "dob")
