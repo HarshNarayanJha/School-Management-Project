@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    School Management | Exams
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <!-- Exams Start -->
+    <h1 class="content-title font-size-24">Exams</h1>
+    {% if exams %}
+    {% for exam in exams %}
+    <div id="{{ foorloop.counter }}" class="card">
+        <div class="card-content">
+            <a href="/admin/exams/exam/{{ exam.id }}/" target="_blank" 
+                class="text-primary font-size-24">{{ forloop.counter }}. {{ exam }}</a>
+            <p>Exam Name: {{ exam.name }}</p>
+            <p>Session: {{ exam.session }}</p>
+            <p>Class: {{ exam.cls }}</p>
+            
+            <div class="sidebar-divider"></div>
+            <!-- Results Start -->
+            <p class="card-title">Results</p>
+            {% if exam.result_set.get_queryset %}
+                {% for result in exam.result_set.get_queryset %}
+                    <div class="card">
+                        <a href="/admin/students/students/{{ result.student.uid }}/" class="card-title">{{ forloop.counter }}. {{ result.student.full_name }}</a>
+                        <p>Roll: {{ result.student.roll }}</p>
+
+                        <div class="sidebar-divider"></div>
+                        <!-- Marks Start -->
+                        <p class="card-title">Marks</p>
+                        {% if result.marks_set.get_queryset %}
+                            {% for mark in result.marks_set.get_queryset %}
+                                <div class="card">
+                                    <h1 class="card-title">{{ mark.subject }}</h1>
+                                    <p>Marks Obtained: {{ mark.marks_ob }}</p>
+                                    <p>Out Of: {{ mark.marks_mx }}</p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No Marks added yet...</p>
+                        {% endif %}
+                        <!-- Marks End -->     
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No Results added yet...</p>
+            {% endif %}
+            <!-- Results End -->
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+        <p>No exams added yet...</p>
+    {% endif %}
+    <!-- Exams End -->
+</div>
+{% endblock content %}

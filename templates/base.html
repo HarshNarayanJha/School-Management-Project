@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="{% static 'css/halfmoon/halfmoon-variables.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fontawesome/css/all.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fontawesome/css/all.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/ionicons/ionicons.css' %}">
     {% block css %}
     
@@ -20,7 +20,7 @@
     </title>
 
 </head>
-<body data-set-preferred-mode-onload="true">
+<body data-set-preferred-mode-onload="true" onload="brython()">
     <div class="page-wrapper with-navbar with-navbar-fixed-bottom with-sidebar">
     {% include 'navbar.html' %}
     {% include 'sidebar.html' %}
@@ -42,7 +42,9 @@
 
     <script src="{% static 'js/jquery-3.5.1.js' %}"></script>
     <script src="{% static 'js/halfmoon/halfmoon.min.js' %}"></script>
-
+    
+    <script src="{% static 'js/Brython-3.10.4/brython.js' %}"></script>
+    <!-- <script src="{% static 'js/Brython-3.10.4/brython_stdlib.js' %}"></script> -->
     {% block scripts %}
     
     {% endblock scripts %}

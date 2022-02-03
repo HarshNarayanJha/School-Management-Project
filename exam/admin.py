@@ -1,7 +1,7 @@
 from django.contrib import admin
+from django.http import HttpRequest
 
 from students.models import Student
-
 from .models import Exam, Result, Marks
 from .forms import ResultsInlineFormSet
 import nested_admin
@@ -18,6 +18,7 @@ class ResultsInline(nested_admin.NestedTabularInline):
     formset = ResultsInlineFormSet
     inlines = [MarksInline]
 
+    # NOTE #1:
     # Probably want this, but the issue with this is that
     # not yet saved Result instances will have a - (dash) inplace of student name...
     # readonly_fields = ("student",)
@@ -31,6 +32,18 @@ class ResultsInline(nested_admin.NestedTabularInline):
         # formset.request = request
         formset.obj = obj
         return formset
+
+    # Restrict the `student` dropdown in the Result inline to only those students 
+    # who are in this class
+
+    # Be we would ultimately want the `student` field to be readonly
+    # as it is pre-populated, See NOTE #1 above
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        exam_obj = Exam.objects.get(id=request.resolver_match.kwargs['object_id'])
+        if db_field.name == "student":
+            kwargs["queryset"] = Student.objects.filter(cls=exam_obj.cls)
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     #  We want the Results in the order of student's roll number, no matter the entry order
     def get_queryset(self, request):
@@ -70,13 +83,18 @@ class ResultsInline(nested_admin.NestedTabularInline):
         return total
 
 class ExamAdmin(nested_admin.NestedModelAdmin):
-    list_display = ("name", "session", "cls")
+    list_display = ("__str__", "session", "cls")
     list_filter = ("name", "session", "cls")
     search_fields = ("name", "session", "cls")
 
     fieldsets = (
         ("Exam Info", {'fields': ("name", "session", "cls")}),
     )
+
+    def get_changeform_initial_data(self, request):
+        cls = request.user.is_class_teacher()
+        if cls:
+            return {'cls': cls}
 
     inlines = [ResultsInline]
 

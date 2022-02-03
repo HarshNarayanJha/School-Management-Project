@@ -19,10 +19,18 @@
 
       <br />
 
+      <h5 class="sidebar-title"><a href="{% url 'students:home' %}" class="text-light-dm">Teachers</a></h5>
+      <div class="sidebar-divider"></div>
+      <!-- <a href="{% url 'students:students' %}" class="sidebar-link">Teachers</a> -->
+      <a href="/admin/students/teacher/" class="sidebar-link">Teachers (Admin)</a>
+      <a href="/admin/students/teacher/add/" class="sidebar-link">Add Teacher</a>
+
+      <br />
+
       <h5 class="sidebar-title"><a href="{% url 'exam:home' %}" class="text-light-dm">Exams</a></h5>
       <div class="sidebar-divider"></div>
       <a href="{% url 'exam:home' %}" class="sidebar-link">Exam Home</a>
-      <!-- <a href="{% url 'exam:home' %}" class="sidebar-link">Exams</a> -->
+      <a href="{% url 'exam:exams' %}" class="sidebar-link">Exams</a>
       <a href="/admin/exam/exam/" class="sidebar-link">Exams (Admin)</a>
       <a href="/admin/exam/exam/add/" class="sidebar-link">Add Exam</a>
       <!-- <a href="#" class="sidebar-link">Map</a> -->

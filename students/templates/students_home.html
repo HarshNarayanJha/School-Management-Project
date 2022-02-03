@@ -1,36 +1,95 @@
 {% extends 'base.html' %}
+{% load static %}
 
-    {% block title %}
-        School Management | Home
-    {% endblock title %}
+{% block title %}
+    School Management | Home
+{% endblock title %}
 
-    {% block content %}
-    <div class="content">
-        <h1 class="">Welcome to the School Management System</h1>
-        <!-- <div><a href="/admin">Go to Admin</a></div> -->
+{% block content %}
+<div class="content">
+    <h1 class="">Welcome to the School Management System</h1>
+    <!-- <div><a href="/admin">Go to Admin</a></div> -->
 
-        <div class="card">
-            <p class="text-monospace font-size-18">
-            The class teacher will create a new Exam, enter the primary details (exam name, session, class), and save it.
-            (hence: if one exam is conducted in multiple classes together, then each class will have its own exam under the same name),
-            <kbd>save and continue editing</kbd> it, then all the students in that class
-            will be pre-poulated in the Results section, and each subject teacher just has to enter the marks of each student.
-            <br>
-            Each student page is also acquired by a Results section, in which each Exam is listed together with that students Marks
-            <br>
-            We can create students, teacher etc. I am planning to create an csv parser for easy students creation...
-            <br>
-            Next goal is to hookup Teacher creation wth Django User system, so that we can authenticate Teachers.
-            </p>
-        </div>
-
-        <!-- <div class="card">
-            <h5 class="card-title">Dev Links</h5>
-            <div class="card-content">
-                <div><a href="{% url 'students:students' %}">Students Page</a></div>
-                <div><a href="{% url 'exam:home' %}">Exams Home</a></div>
-            </div>
-        </div> -->
+    <div class="card">
+        <p class="text-monospace font-size-18">
+        The class teacher will create a new Exam, enter the primary details (exam name, session, class), and save it.
+        (hence: if one exam is conducted in multiple classes together, then each class will have its own exam under the same name),
+        <kbd>save and continue editing</kbd> it, then all the students in that class
+        will be pre-poulated in the Results section, and each subject teacher just has to enter the marks of each student.
+        <br>
+        Each student page is also acquired by a Results section, in which each Exam is listed together with that students Marks
+        <br>
+        We can create students, teacher etc. I am planning to create an csv parser for easy students creation...
+        <br>
+        Next goal is to hookup Teacher creation wth Django User system, so that we can authenticate Teachers.
+        </p>
     </div>
 
-    {% endblock content %}
+    <div class="card">
+        <h5 class="card-title">
+            Bulk Upload Students via CSV File
+        </h5>
+        <form id="students-upload-form" class="w-400 mw-full" method="POST" action="{% url 'students:students-upload' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <div class="custom-file">
+                    <input type="file" accept="text/csv" name="students-file-input" id="students-file-input" required/>
+                    <label for="students-file-input" class="required">Upload Students CSV file</label>
+                </div>
+            </div>
+            <button id="students-upload-submit" type="submit" class="btn btn-action disabled" disabled><span class="fa fa-upload"></span>&nbsp;Upload File</button>
+        </form>
+        <hr class="dropdown-divider" />
+        <a href="{% static 'samplefile/Sample_File.csv' %}"><h6>Click here to Download Template CSV For Data Uploading</h6></a>
+    </div>
+
+    <!-- <div class="card">
+        <h5 class="card-title">Dev Links</h5>
+        <div class="card-content">
+            <div><a href="{% url 'students:students' %}">Students Page</a></div>
+            <div><a href="{% url 'exam:home' %}">Exams Home</a></div>
+        </div>
+    </div> -->
+</div>
+{% endblock content %}
+
+{% block scripts %}
+    <!-- <script>
+        let form = $("#students-upload-form");
+        let fileUpload = $("#students-file-input");
+        let submitBut = $("#students-upload-submit");
+
+        fileUpload.on('change', function(e) {
+            if (fileUpload[0].files[0]) {
+                console.log("File Uploaded");
+                submitBut.removeAttr("disabled");
+                submitBut.removeClass("disabled");
+            } else {
+                console.log("Nothing Uploaded");
+                submitBut.attr("disabled", "");
+                submitBut.addClass("disabled");
+            }
+        });
+    </script> -->
+    <script type="text/python">
+        from browser import document, alert, bind
+
+        form = document['students-upload-form']
+        file_upload = document['students-file-input']
+        submit_button = document['students-upload-submit']
+
+        @bind(file_upload, "input")
+        def set_upload_button(ev):
+            if len(file_upload.files) != 0:
+                submit_button.removeAttribute("disabled")
+                submit_button.classList.remove("disabled")
+            else:
+                submit_button.setAttribute("disabled", "")
+                submit_button.classList.add("disabled")
+
+        if len(document.select(".file-names")) > 0:
+            file_name_text = document.select(".file-names")[0]
+            file_name_text.classList.add("text-monospace")
+
+    </script>
+    {% endblock scripts %}

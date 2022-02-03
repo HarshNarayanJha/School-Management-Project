@@ -129,5 +129,15 @@
 			"\t$0",
 			"{% endif %}",
 		]
+	},
+
+	"For Loop": {
+		"scope": "html",
+		"prefix": "for.loop.block",
+		"body": [
+			"{% for $1 in $2 %}",
+			"\t$0",
+			"{% endfor %}",
+		]
 	}
 }

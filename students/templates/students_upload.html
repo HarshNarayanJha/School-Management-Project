@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+    School Management | Students Bulk Upload
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <div class="card">
+        <h2 class="card-title">Students Bulk Upload</h2>
+
+        <div class="card-content">
+            {% if students_added %}
+                <h5>The Following Students were uploaded:</h5>
+                <hr class="sidebar-divider" />
+                {% for student in students_added %}
+                    <div class="text-monospace">{{ foorloop.counter }}. {{ student.student_name }}</div>
+                {% endfor %}
+            {% else %}
+                No Students were Uploaded
+            {% endif %}
+        </div>
+    </div>
+
+    {% if students_not_added %}
+        <div class="card">
+            <h2 class="card-title">Some Students were not added, cause they already existed in the database</h2>
+            <hr class="sidebar-divider" />
+            {% for student_not in students_not_added %}
+                <div class="text-monospace">{{ foorloop.counter }}. {{ student_not.student_name }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+</div>
+{% endblock content %}
