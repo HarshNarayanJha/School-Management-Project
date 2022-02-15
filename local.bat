@@ -1,1 +1,1 @@
-manage.py runserver
+"env/Scripts/activate.bat" && manage.py runserver

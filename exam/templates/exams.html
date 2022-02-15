@@ -6,10 +6,38 @@
 
 {% block content %}
 <div class="content">
-    <!-- Exams Start -->
-    <h1 class="content-title font-size-24">Exams</h1>
-    {% if exams %}
-    {% for exam in exams %}
+    <div class="card">
+        <h1>Exams</h1>
+        {% if exams %}
+        <table class="table table-hover table-inner-bordered table-responsive">
+            <thead>
+                <tr class="alert alert-primary filled-lm">
+                <th>SN</th>
+                <th>Exam Name</th>
+                <th>Session</th>
+                <th>Class</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in exams %}
+                <tr>
+                  <th>{{ forloop.counter }}</th>
+                  <th>{{ exam.name }}</th>
+                  <th>{{ exam.session }}</th>
+                  <th>{{ exam.cls }}</th>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p>No exams added yet...</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
+
+<!--
+{% for exam in exams %}
     <div id="{{ foorloop.counter }}" class="card">
         <div class="card-content">
             <a href="/admin/exams/exam/{{ exam.id }}/" target="_blank" 
@@ -19,7 +47,7 @@
             <p>Class: {{ exam.cls }}</p>
             
             <div class="sidebar-divider"></div>
-            <!-- Results Start -->
+            <!-Results Start->
             <p class="card-title">Results</p>
             {% if exam.result_set.get_queryset %}
                 {% for result in exam.result_set.get_queryset %}
@@ -28,7 +56,7 @@
                         <p>Roll: {{ result.student.roll }}</p>
 
                         <div class="sidebar-divider"></div>
-                        <!-- Marks Start -->
+                        <!-Marks Start->
                         <p class="card-title">Marks</p>
                         {% if result.marks_set.get_queryset %}
                             {% for mark in result.marks_set.get_queryset %}
@@ -41,19 +69,14 @@
                         {% else %}
                             <p>No Marks added yet...</p>
                         {% endif %}
-                        <!-- Marks End -->     
+                        <!-Marks End->
                     </div>
                 {% endfor %}
             {% else %}
                 <p>No Results added yet...</p>
             {% endif %}
-            <!-- Results End -->
+            <!-Results End->
         </div>
     </div>
-    {% endfor %}
-    {% else %}
-        <p>No exams added yet...</p>
-    {% endif %}
-    <!-- Exams End -->
-</div>
-{% endblock content %}
+{% endfor %}
+-->

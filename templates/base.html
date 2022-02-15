@@ -20,10 +20,16 @@
     </title>
 
 </head>
-<body data-set-preferred-mode-onload="true" onload="brython()">
-    <div class="page-wrapper with-navbar with-navbar-fixed-bottom with-sidebar">
+<body data-set-preferred-mode-onload="true"
+      data-sidebar-shortcut-enabled="true"
+      data-dm-shortcut-enabled="true"
+      onload="brython()">
+      
+    <div class="page-wrapper with-navbar with-navbar-fixed-bottom with-sidebar with-custom-webkit-scrollbars">
     {% include 'navbar.html' %}
     {% include 'sidebar.html' %}
+
+        <div class="sticky-alerts"></div>
 
         <div class="content-wrapper">
         {% block content %}
@@ -35,7 +41,12 @@
             <div class="navbar-content">
             </div>
             <p class="navbar-text ml-auto mr-auto">
-                Made with &nbsp;<span class="text-danger">❤</span>&nbsp; by &nbsp;<a href="https://github.com/HarshNarayanJha">Harsh Narayan Jha</a>
+                Made with &nbsp;
+                <span class="text-danger">❤</span>&nbsp;
+                by &nbsp;
+                <a href="https://github.com/HarshNarayanJha" target="_blank">Harsh Narayan Jha</a>
+                &nbsp; and &nbsp;
+                <a href="https://github.com/abhigureniya" target="_blank">Abhijeet Singh Gureniya</a>&nbsp;(my sir!)
             </p>
         </nav>
     </div>
@@ -44,6 +55,11 @@
     <script src="{% static 'js/halfmoon/halfmoon.min.js' %}"></script>
     
     <script src="{% static 'js/Brython-3.10.4/brython.js' %}"></script>
+    
+    <!-- Will include if needed, as it slows down page loading -->
+    <!-- Brython provides a workaround for this loading issue, but providing a compiler
+    which will scan your usages and generate a .js file with only those modules which are used by ya. -->
+
     <!-- <script src="{% static 'js/Brython-3.10.4/brython_stdlib.js' %}"></script> -->
     {% block scripts %}
     

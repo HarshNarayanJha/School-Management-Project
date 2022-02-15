@@ -1,0 +1,11 @@
+{
+    "files.exclude": {
+        "env": true
+    },
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.minimap.renderCharacters": false,
+    "material-icon-theme.folders.theme": "classic",
+    "html.format.indentHandlebars": true,
+    "html.format.templating": true,
+}

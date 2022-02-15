@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    School Management | Student | {{ stu.student_name }}
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <h1 class="content-title">Details for Student- {{ stu.student_name|title }} (UID:- {{ stu.uid }})</h1>
+
+    <div class="card">
+        <h2 class="text-primary">{{ stu.student_name }}</h2>
+
+        <div class="row">
+            <div class="card bg-very-dark-dm col-5">
+                <p class="card-title text-secondary-dm">Student-related Details</p>
+                <p>
+                    <!-- The Label -->
+                    <span class="text-muted">Student's Name</span>
+                    <!-- The Value -->
+                    <span class="font-size-16 float-right">{{ stu.student_name|title }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.student_name }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.student_name }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Father's Name</span>
+                    <span class="font-size-16 float-right">{{ stu.fathers_name|title }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.fathers_name }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.fathers_name }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Mother's Name</span>
+                    <span class="font-size-16 float-right">{{ stu.mothers_name|title }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.mothers_name }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.mothers_name }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Date of Birth</span>
+                    <span class="font-size-16 float-right">{{ stu.dob }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <!-- VS-Code gives issues here, as it expects this to be plain javascript
+                        But we have a combo of javascript + django-templates. Need to find a way around in VS-Code -->
+                        <span onclick="python_copy('{{ stu.dob|date:'d/m/Y' }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.dob|date:'d/m/Y' }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Gender</span>
+                    <span class="font-size-16 float-right">{{ stu.gender }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.gender }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.gender }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Aadhar Number</span>
+                    <span class="font-size-16 float-right">{{ stu.aadhar_number|default:"-" }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.aadhar_number }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.aadhar_number }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Phone Number:</span>
+                    <span class="font-size-16 float-right">{{ stu.phone_number }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.phone_number }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.phone_number }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>
+                    </span>
+                </p>
+            </div>
+            
+
+            <div class="card bg-very-dark-dm col-5">
+                <p class="card-title text-secondary-dm">School-related Details</p>
+
+                <p>
+                    <span class="text-muted">School Code</span><span class="font-size-16 float-right">{{ stu.school_code }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.school_code }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.school_code }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>                 
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">UID</span><span class="font-size-16 float-right">{{ stu.uid }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.uid }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.uid }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>                
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Admission Category</span><span class="font-size-16 float-right">{{ stu.admission_category }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.admission_category }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.admission_category }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>                     
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Social Category</span><span class="font-size-16 float-right">{{ stu.social_category }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.social_category }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.social_category }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Date of Admission</span><span class="font-size-16 float-right">{{ stu.doa }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.doa|date:'d/m/Y' }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.doa|date:'d/m/Y' }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>                 
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Class Number</span><span class="font-size-16 float-right">{{ stu.cls }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.cls }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.cls }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>                 
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted">Roll No.</span><span class="font-size-16 float-right">{{ stu.roll }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.roll }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.roll }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>                 
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<!-- <script>
+    // navigator.clipboard.writeText().then(function() {alert("Hi1");}, function(reason) {alert(reason);});
+    halfmoon.initStickyAlert({
+        content: "Hi!",
+        title: "Hello!!!",
+    });
+</script> -->
+<script type="text/python" src="{% static 'py/student_details_copy.py' %}"></script>
+
+{% endblock scripts %}
