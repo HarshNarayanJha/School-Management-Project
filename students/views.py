@@ -8,7 +8,13 @@ import csv
 from .models import Student, Teacher
 
 def home(request: HttpRequest):
-    return render(request, 'students_home.html', context={})
+
+    context = {}
+
+    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
+    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
+
+    return render(request, 'students_home.html', context=context)
 
 def students(request: HttpRequest):
 
@@ -26,7 +32,7 @@ def students(request: HttpRequest):
     page = request.GET.get('page', 1)
     is_filter = request.GET.get('is_filter', False)
 
-    students_per_page = int(request.GET.get('students_per_page', 10))
+    students_per_page = int(request.GET.get('students_per_page', 10) or 10)
     students_filter_name = request.GET.get('students_filter_name', "").strip()
     students_filter_uid = request.GET.get('students_filter_uid', "").strip()
     students_filter_phone = request.GET.get('students_filter_phone', "").strip()
@@ -48,59 +54,21 @@ def students(request: HttpRequest):
 
     paginator, students = create_paginator(all_students, page, students_per_page)
 
-    #
-    # TODO: Make both of the forms below, (pagination and filter) work together somehow...
-    # if request.method == "POST":
-
-    #     # If page-number val is not None, then it is the `pagination go to page` form
-    #     if request.POST.get("page-number") != None:
-
-    #         # Retrieve whether any filter(s) was/were applied
-
-    #         # Use the absolute value, as we never know what the end user will enter!
-    #         page = abs(int(request.POST.get("page-number")))
-
-    #         try:
-    #             page = paginator.validate_number(page)
-    #         except PageNotAnInteger:
-    #             page = 1
-    #         except EmptyPage:
-    #             page = paginator.num_pages
-
-    #         return HttpResponseRedirect(f"?page={page}")
-
-    #     # or it is the students seacrch/filter form
-    #     else:
-    #         is_filter = True
-
-    #         students_per_page = int(request.POST.get('students_per_page'))
-    #         students_filter_name = request.POST.get('students_filter_name').strip()
-    #         students_filter_uid = request.POST.get('students_filter_uid').strip()
-    #         students_filter_phone = request.POST.get('students_filter_phone').strip()
-    #         students_filter_aadhar = request.POST.get('students_filter_aadhar').strip()
-
-    #         all_students = Student.objects.all().filter(
-    #                                 student_name__icontains=students_filter_name,
-    #                                 uid__icontains=students_filter_uid,
-    #                                 phone_number__icontains=students_filter_phone,
-    #                                 aadhar_number__icontains=students_filter_aadhar).order_by('cls', 'roll')
-
-    #         # paginator = Paginator(all_students, students_per_page)
-    #         # try:
-    #         #     students = paginator.page(page)
-    #         # except PageNotAnInteger:
-    #         #     students = paginator.page(1)
-    #         # except EmptyPage:
-    #         #     students = paginator.page(paginator.num_pages)
-
-    #         paginator, students = create_paginator(all_students, page, students_per_page)
-
-    #         # print(students_per_page, students_filter_name, students_filter_phone, students_filter_uid, students_filter_aadhar)
+    pagination_get_parameters = f"&is_filter={request.GET.get('is_filter', False)}"
+    pagination_get_parameters += f"&students_per_page={request.GET.get('students_per_page', '')}"
+    pagination_get_parameters += f"&students_filter_name={request.GET.get('students_filter_name', '')}"
+    pagination_get_parameters += f"&students_filter_uid={request.GET.get('students_filter_uid', '')}"
+    pagination_get_parameters += f"&students_filter_phone={request.GET.get('students_filter_phone', '')}"
+    pagination_get_parameters += f"&students_filter_aadhar={request.GET.get('students_filter_aadhar', '')}"
 
     context = {
         'students': students,
         'is_filter': is_filter,
+        'pagination_get_parameters': pagination_get_parameters,
     }
+
+    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
+    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
 
     return render(request, 'students.html', context=context)
 
@@ -111,12 +79,23 @@ def student_detail(request: HttpRequest, uid: str):
         'stu': stu
     }
 
+    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
+    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
+
     return render(request, 'student_detail.html', context=context)
 
 def student_edit(request: HttpRequest, uid: str):
+
+    context = {}
+    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
+    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
+
     return HttpResponse(f"edit {uid}")
 
 def students_upload(request: HttpRequest):
+
+    students_list = []
+    duplicate_students_list = []
     
     if request.method == 'POST' and request.FILES['students-file-input']:
         uploaded_file = request.FILES['students-file-input']
@@ -124,8 +103,6 @@ def students_upload(request: HttpRequest):
         filename = fs.save(str(uuid.uuid4())+".csv", uploaded_file)
         f = open(filename,"r")
         csvreader = csv.reader(f)
-        students_list = []
-        duplicate_students_list = []
 
         # skip header
         next(csvreader)
@@ -147,4 +124,12 @@ def students_upload(request: HttpRequest):
         #['school_code','student_name','fathers_name','mothers_name','admission_category',
         #'social_category','uid','cls','roll','gender','dob','doa','aadhar_number','phone_number'])
 
-    return render(request, 'students_upload.html', context={"students_added": students_list, "students_not_added": duplicate_students_list})
+    context = {
+        "students_added": students_list,
+        "students_not_added": duplicate_students_list
+    }
+
+    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
+    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
+
+    return render(request, 'students_upload.html', context=context)

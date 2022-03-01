@@ -4,7 +4,12 @@ from .models import Exam
 from students.models import Student
 
 def home(request: HttpRequest):
-    return render(request, 'exam_home.html', context={})
+    context = {}
+
+    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
+    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
+
+    return render(request, 'exam_home.html', context=context)
 
 def exams(request: HttpRequest):
     exam = Exam.objects.all()
@@ -12,4 +17,8 @@ def exams(request: HttpRequest):
     context = {
         'exams': exam,
     }
+
+    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
+    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
+
     return render(request, 'exams.html', context=context)
