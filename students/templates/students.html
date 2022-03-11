@@ -8,7 +8,10 @@
 <div class="content">
     <div class="card">
 
-        <h1>Students</h1>
+      <div class="d-flex justify-content-between">
+        <p class="m-0 font-size-24">Students</p>
+        <a href="{% url 'students:student-add' %}" class="btn btn-primary btn-rounded mt-auto mb-auto"><span class="ion ion-ios-plus-outline"></span>&nbsp;Add Student</a>
+      </div>
 
         <!-- Filter Form (Collapsable!!! yoo hoooooo...) -->
         <details id="filter_collapse" class="collapse-panel card mx-0 pl-20 mb-10 bg-very-dark-dm bg-light-lm p-10">
@@ -51,16 +54,48 @@
 
                 <div class="form-group form-inline">
                   <label for="students_filter_aadhar">Find/Filter by Student Aadhar Number:</label>
-                  <input type="text" name="students_filter_aadhar" id="students_filter_aadahr" class="form-control w-250" part="[0-9]{12}" maxlength="12" value="{{ request.GET.students_filter_aadhar }}">
+                  <input type="text" name="students_filter_aadhar" id="students_filter_aadhar" class="form-control w-250" pattern="[0-9]{12}" maxlength="12" value="{{ request.GET.students_filter_aadhar }}">
                 </div>
               </div>
 
-              <input type="hidden" name="is_filter" value="True">
+              <div class="d-flex flex-column flex-lg-row justify-content-around">
+
+                <div class="form-group form-inline">
+                  <label for="students_filter_mother">Find/Filter by Mother's Name:</label>
+                  <input type="text" name="students_filter_mother" id="students_filter_mother" class="form-control w-200" value="{{ request.GET.students_filter_mother }}">
+                </div>
+
+                <div class="form-group form-inline">
+                  <label for="students_filter_father">Find/Filter by Father's Name:</label>
+                  <input type="text" name="students_filter_father" id="students_filter_father" class="form-control w-250" value="{{ request.GET.students_filter_father }}">
+                </div>
+              </div>
+
+              <div class="form-group form-inline w-200">
+                <label for="students_filter_cls">Filter by Class:</label>
+                <select class="form-control" name="students_filter_cls" id="students_filter_cls">
+                </select>
+              </div>
+
+              <div class="form-group form-inline w-200">
+                <label for="students_filter_gender">Filter by Gender:</label>
+                <select class="form-control" name="students_filter_gender" id="students_filter_gender">
+                </select>
+              </div>
+
+              <input type="hidden" name="is_filter" id="is_filter">
 
               <input type="submit" value="Find/Filter!" class="btn btn-success">
               <!-- TODO: Make the anchor tag also uninteractable if disabled... -->
               <button id="filter_form_reset" class="btn btn-danger disabled" disabled><a class="text-reset text-decoration-none" href="{% url 'students:students' %}">Clear all Filters</a></button>
             </form>
+          </div>
+          <div class="alert alert-secondary">
+            {% if is_filter %}
+              <p class="m-0 font-size-16"><span class="text-primary font-weight-semi-bold">{{ num_all_students }}</span> Student{{ num_all_students|pluralize }} filtered !</p>
+            {% else %}
+              <p class="m-0 font-size-16"><span class="text-primary font-weight-semi-bold">{{ num_all_students }}</span> total Student{{ num_all_students|pluralize }} !</p>
+            {% endif %}
           </div>
         </details>
         <!-- /Filter Form -->
@@ -88,12 +123,12 @@
                 <th>{{ forloop.counter0|add:students.start_index }}</th>
                 <th>{{ student.uid }}</th>
                 <th>{{ student.roll }}</th>
-                <th>{{ student.student_name }}</th>
+                <th><a href="{% url 'students:student-detail' uid=student.uid %}" class="text-decoration-none text-reset" target="_blank" draggable="false">{{ student.student_name }}</a></th>
                 <th>{{ student.cls }}</th>
                 <th>{{ student.dob }}</th>
                 <th>{{ student.doa }}</th>
-                <th>{{ student.phone_number }}</th>
-                <th>{{ student.aadhar_number }}</th>
+                <th class="text-center">{{ student.phone_number }}</th>
+                <th class="text-center">{{ student.aadhar_number|default:'-' }}</th>
                 <th>
                   <a href="{% url 'students:student-detail' uid=student.uid %}" class="btn btn-sm btn-rounded btn-success"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
                   <a href="{% url 'students:student-edit' uid=student.uid %}" class="btn btn-sm btn-rounded btn-secondary"><span class="fa fa-edit">&nbsp;&nbsp;</span>Edit</a>
@@ -111,7 +146,7 @@
           {% endif %}
         {% endif %}
         </div>
-        
+
         <!-- Pagination -->
         {% if students.has_other_pages %}
           <ul class="pagination mt-20 text-center">
@@ -181,12 +216,16 @@
               <div class="w-50">
                 <input type="number" class="form-control text-center" name="page" id="page-number">
                 
-                <input type="hidden" value="{{ is_filter }}" name="is_filter">
                 <input type="hidden" value="{{ request.GET.students_per_page }}" name="students_per_page">
                 <input type="hidden" value="{{ request.GET.students_filter_name }}" name="students_filter_name">
                 <input type="hidden" value="{{ request.GET.students_filter_uid }}" name="students_filter_uid">
                 <input type="hidden" value="{{ request.GET.students_filter_phone }}" name="students_filter_phone">
                 <input type="hidden" value="{{ request.GET.students_filter_aadhar }}" name="students_filter_aadhar">
+                <input type="hidden" value="{{ request.GET.students_filter_mother }}" name="students_filter_mother">
+                <input type="hidden" value="{{ request.GET.students_filter_father }}" name="students_filter_father">
+                <input type="hidden" value="{{ request.GET.students_filter_cls }}" name="students_filter_cls">
+                <input type="hidden" value="{{ request.GET.students_filter_gender }}" name="students_filter_gender">
+                <input type="hidden" value="{{ is_filter }}" name="is_filter">
               </div>
             </form>
           </ul>
@@ -199,11 +238,11 @@
 {% block scripts %}
 
   <script type="text/python">
-    from browser import document
+    from browser import document, html
 
     filter_form_reset = document["filter_form_reset"]
 
-    if {{ is_filter }}:
+    if bool({{ is_filter }}):
       document['filter_collapse'].attrs['open'] = ""
       del filter_form_reset.attrs["disabled"]
       filter_form_reset.classList.remove("disabled")
@@ -215,5 +254,46 @@
     opt = document[f"stu_per_page_{% templatetag openbrace %}stu_per_page{% templatetag closebrace %}"]
     
     opt.attrs["selected"] = ""
+
+    classes = {{ classes|safe }}
+
+    # Append the class options!
+    cls_none = html.OPTION("-----")
+    cls_none.attrs["id"] = f"students_filter_cls_None"
+    cls_none.attrs["value"] = ''
+    document['students_filter_cls'] <= cls_none
+
+    for i in classes:
+        elem = html.OPTION(f"{i[1]}")
+        elem.attrs["id"] = f"students_filter_cls_{i[1].lower()}"
+        elem.attrs["value"] = i[1]
+        document['students_filter_cls'] <= elem
+
+    # pre-select the correct option!
+    filter_cls = "{{ request.GET.students_filter_cls }}".lower() or None
+
+    cls_opt = document[f"students_filter_cls_{% templatetag openbrace %}filter_cls{% templatetag closebrace %}"]
+    cls_opt.attrs["selected"] = ""
+
+    #
+    genders = {{ genders|safe }}
+
+    # Append the gender options!
+    gender_none = html.OPTION("-----")
+    gender_none.attrs["id"] = f"students_filter_gender_None"
+    gender_none.attrs["value"] = ''
+    document['students_filter_gender'] <= gender_none
+
+    for i in genders:
+        elem = html.OPTION(f"{i[1]}")
+        elem.attrs["id"] = f"students_filter_gender_{i[1].lower()}"
+        elem.attrs["value"] = i[1]
+        document['students_filter_gender'] <= elem
+
+    # pre-select the correct option!
+    filter_gender = "{{ request.GET.students_filter_gender }}".lower() or None
+
+    gender_opt = document[f"students_filter_gender_{% templatetag openbrace %}filter_gender{% templatetag closebrace %}"]
+    gender_opt.attrs["selected"] = ""
   </script>
 {% endblock scripts %}

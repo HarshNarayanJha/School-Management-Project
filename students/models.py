@@ -33,15 +33,19 @@ GROUPS = {
 }
 
 class Student(models.Model):
+    ADMISSION_CATEGORIES = (("I","I"),("II","II"),("III","III"),("IV","IV"),("V","V"))
+    SOCIAL_CATEGORIES = (("GEN","General"),("SC","SC"),("ST","ST"),("OBC","OBC"))
+    GENDERS = (("Boy","Boy"),("Girl","Girl"))
+    
     school_code = models.IntegerField(verbose_name="School Code", blank=False, null=False)
 
     student_name = models.CharField("Student's Name", max_length=30, null=False)
     fathers_name = models.CharField("Father's Name", max_length=30, null=False)
     mothers_name = models.CharField("Mother's Name", max_length=30, null=True, blank=True)
 
-    admission_category = models.CharField("Admission Category",max_length=3, choices=(("I","I"),("II","II"),("III","III"),("IV","IV"),("V","V")), null=False)
-    social_category = models.CharField("Social Category",max_length=7, choices=(("General","GEN"),("SC","SC"),("ST","ST"),("OBC","OBC")), null=False)
-    gender = models.CharField("Gender",max_length=4,null=False,choices=(("Boy","Boy"),("Girl","Girl")))
+    admission_category = models.CharField("Admission Category",max_length=3, choices=ADMISSION_CATEGORIES, null=False)
+    social_category = models.CharField("Social Category",max_length=7, choices=SOCIAL_CATEGORIES, null=False)
+    gender = models.CharField("Gender",max_length=4,null=False,choices=GENDERS)
     uid_regex = RegexValidator(r'^\d{15,16}$', "UID should be of 15 digits")
     uid = models.CharField("Student's UID Number", primary_key=True, max_length=16, validators=[uid_regex], blank=False, null=False)
     dob = models.DateField("Date of Birth", blank=False, null=False)
@@ -57,9 +61,6 @@ class Student(models.Model):
 
     def __str__(self) -> str:
         return f"{self.student_name}"
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
 
 class Teacher(models.Model):
     teacher_name = models.CharField("Teacher's Name", max_length=30)

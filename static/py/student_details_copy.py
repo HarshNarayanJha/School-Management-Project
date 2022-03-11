@@ -19,7 +19,7 @@ failed_alert_content = "You browser may not support copying to clipboard.<code c
                             <span class='d-flex justify-content-center'>\
                                 <code class='code font-size-18'>{3}</code>\
                             </span>"
-failed_alert_timeout = 10000
+failed_alert_timeout = 15000
 
 def on_copy_success(value):
     # print("Copied!", _text)
@@ -40,7 +40,6 @@ def on_copy_failed(reason):
         'content': failed_alert_content.format(reason.code, reason.name, reason.message, _text),
         'alertType': "alert-danger",
         'fillType': "",
-        'hasDismissButton': False,
         'timeShown': failed_alert_timeout,
     })
 

@@ -7,13 +7,26 @@
 
 {% block content %}
 <div class="content">
-    <h1 class="content-title">Details for Student- {{ stu.student_name|title }} (UID:- {{ stu.uid }})</h1>
+    <h1 class="content-title">Details for Student- <span class="text-primary">{{ stu.student_name }}</span> (UID:- {{ stu.uid }})</h1>
+    <hr class="dropdown-divider mb-10" />
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.extra_tags }} mb-10" role="alert">
+                <button class="close" data-dismiss="alert" type="button" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                <h4 class="alert-heading">Success!</h4>
+                {{ message|safe }}
+            </div>
+        {% endfor %}
+    {% endif %}
 
     <div class="card">
-        <h2 class="text-primary">{{ stu.student_name }}</h2>
+        <h2 class="text-primary">{{ stu.student_name }} <a href="{% url 'students:student-edit' uid=stu.uid %}" class="ion ion-edit font-size-16 text-light">(&nbsp;Edit)</a></h2>
 
         <div class="row">
-            <div class="card bg-very-dark-dm col-5">
+            <div class="card bg-very-dark-dm bg-light-lm col-lg-5 col-11">
                 <p class="card-title text-secondary-dm">Student-related Details</p>
                 <p>
                     <!-- The Label -->
@@ -106,7 +119,7 @@
             </div>
             
 
-            <div class="card bg-very-dark-dm col-5">
+            <div class="card bg-very-dark-dm bg-light-lm col-lg-5 col-11">
                 <p class="card-title text-secondary-dm">School-related Details</p>
 
                 <p>

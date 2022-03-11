@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    School Management | Students | New
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <div class="card">
+        <p class="card-title">Append New Student</p>
+        <hr class="dropdown-divider mb-10" />
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.extra_tags }} mb-10 animated fast shake" role="alert">
+                    <button class="close" data-dismiss="alert" type="button" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    <h4 class="alert-heading">Excuse me!</h4>
+                    {{ message|safe }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form action="." method="POST">
+            {% csrf_token %}
+            {% include 'utils/autofill_student_form_data.html' %}
+            <div class="row">
+
+                <div class="card bg-very-dark-dm bg-light-lm col-lg-5 col-11">
+                    <p class="card-title text-secondary-dm">Student-related Details</p>
+                    <div class="form-group form-inline">
+                        <label for="student_name" class="required">Student's Name: </label>
+                        <input class="form-control" type="text" name="student_name" id="student_name" maxlength="30" required>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="fathers_name" class="required">Father's Name: </label>
+                        <input class="form-control" type="text" name="fathers_name" id="fathers_name" maxlength="30" required>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="mothers_name" class="required">Mother's Name: </label>
+                        <input class="form-control" type="text" name="mothers_name" id="mothers_name" maxlength="30" required>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="dob" class="required">Date of Birth: </label>
+                        <input class="form-control" type="date" name="dob" id="dob" required>
+                    </div>
+
+                    <div class="form-group form-inline">
+                        <label for="gender" class="required">Gender: </label>
+                        <select class="form-control" name="gender" id="gender" required>
+                        </select>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="aadhar_number">Aadhar Number: </label>
+                        <input class="form-control" type="tel" name="aadhar_number" id="aadhar_number" maxlength="12" pattern="[0-9]{12}">
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="phone_number" class="required">Phone Number: </label>
+                        <input class="form-control" type="tel" name="phone_number" id="phone_number" maxlength="10" pattern="[0-9]{10}" required>
+                    </div>
+                </div>
+
+                <div class="card bg-very-dark-dm bg-light-lm col-lg-5 col-11">
+                    <p class="card-title text-secondary-dm">School-related Details</p>
+
+                    <div class="form-group form-inline">
+                        <label for="school_code" class="required">School Code: </label>
+                        <input class="form-control" type="number" name="school_code" id="school_code" required>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="uid" class="required">UID: </label>
+                        <input class="form-control" type="text" name="uid" id="uid" maxlength="16" pattern="[0-9]{15,16}" required>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="admission_category" class="required">Admision Category: </label>
+                        <select class="form-control" name="admission_category" id="admission_category" required>
+                        </select>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="social_category" class="required">Social Category: </label>
+                        <select class="form-control" name="social_category" id="social_category" required>
+                        </select>
+                    </div>
+
+                    <div class="form-group form-inline">
+                        <label for="doa" class="required">Date of Admission: </label>
+                        <input class="form-control" type="date" name="doa" id="doa" required>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="cls" class="required">Class: </label>
+                        <select class="form-control" name="cls" id="cls" required>
+                        </select>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="roll" class="required">Roll No.: </label>
+                        <input class="form-control" type="text" name="roll" id="roll" pattern="[0-9]+" required>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-group-vertical d-flex">
+                <button type="submit" class="btn btn-success btn-lg btn-block text-monospace">Spawn New Student into the battlefield !!!</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script type="text/python3" type="module" id="student_edit_options">
+    # defining all the variables needed by the python script to
+    # generate and pre-populate the option fields
+    genders = {{ genders|safe }}
+    admission_categories = {{ admission_categories|safe }}
+    social_categories = {{ social_categories|safe }}
+    classes = {{ classes|safe }}
+
+    gender = ""
+    admission_category = ""
+    social_category = ""
+    cls = ""
+</script>
+
+<script type="text/python" src="{% static 'py/student_add_page.py' %}" ></script>
+<script type="text/python" src="{% static 'py/student_autofill_dummy_data.py' %}" ></script>
+
+{% endblock scripts %}

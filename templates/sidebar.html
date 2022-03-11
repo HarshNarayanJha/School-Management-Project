@@ -15,7 +15,8 @@
       <!-- <a href="{% url 'students:home' %}" class="sidebar-link">Students</a> -->
       <a href="{% url 'students:students' %}" class="sidebar-link">Students</a>
       <a href="/admin/students/student" class="sidebar-link">Students (Admin)</a>
-      <a href="/admin/students/student/add/" class="sidebar-link">Add Student</a>
+      <a href="{% url 'students:student-add' %}" class="sidebar-link">Add Student</a>
+      <a href="/admin/students/student/add/" class="sidebar-link">Add Student (Admin)</a>
 
       <br />
 

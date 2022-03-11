@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    404 | Not Found
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <div class="card text-center d-flex flex-column justify-content-between">
+        <p class="m-0" style="font-size: 5rem; opacity: 85%;">Oh! No!</p>
+        
+        <hr class="sidebar-divider" />
+        
+        <p class="card-title mt-20 font-size-24">Looks like you have found a</p>
+        <p class="card-title" style="font-size: 4rem;">
+            <span class="text-danger">Dead</span> <span class="text-success">Link</span>!
+        </p>
+        
+        <hr class="sidebar-divider" />
+
+        <p id="404" class="my-20" style="font-size: 9rem; opacity: 25%;">404</p>
+
+        <p class="font-size-20">{{ message_404|safe }}</p>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script type="text/python3">
+    from browser import document
+    import random
+
+    e404 = document['404']
+
+    #for i in range(10*10):
+    #    e404.style.opacity = random.random() * 100
+
+</script>
+{% endblock scripts %}
