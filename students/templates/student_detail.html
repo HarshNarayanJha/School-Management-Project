@@ -156,13 +156,13 @@
                     </span>
                 </p>
                 <p>
-                    <span class="text-muted">Social Category</span><span class="font-size-16 float-right">{{ stu.social_category }}
+                    <span class="text-muted">Social Category</span><span class="font-size-16 float-right">{{ social_category_display }}
                         &nbsp;
                         <!-- Dark-Mode copy button -->
-                        <span onclick="python_copy('{{ stu.social_category }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        <span onclick="python_copy('{{ social_category_display }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
                         </span>
                         <!-- Light-Mode copy button -->
-                        <span onclick="python_copy('{{ stu.social_category }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        <span onclick="python_copy('{{ social_category_display }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
                         </span>
                     </span>
                 </p>
@@ -213,6 +213,6 @@
         title: "Hello!!!",
     });
 </script> -->
-<script type="text/python" src="{% static 'py/student_details_copy.py' %}"></script>
+<script type="text/python3" src="{% static 'py/student_details_copy.py' %}"></script>
 
 {% endblock scripts %}

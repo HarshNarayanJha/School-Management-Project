@@ -84,11 +84,11 @@ class ResultsInline(nested_admin.NestedTabularInline):
 
 class ExamAdmin(nested_admin.NestedModelAdmin):
     list_display = ("__str__", "session", "cls")
-    list_filter = ("name", "session", "cls")
-    search_fields = ("name", "session", "cls")
+    list_filter = ("exam_name", "session", "cls")
+    search_fields = ("exam_name", "session", "cls")
 
     fieldsets = (
-        ("Exam Info", {'fields': ("name", "session", "cls")}),
+        ("Exam Info", {'fields': ("exam_name", "session", "cls")}),
     )
 
     def get_changeform_initial_data(self, request):

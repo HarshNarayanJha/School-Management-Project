@@ -7,24 +7,36 @@
 {% block content %}
 <div class="content">
     <div class="card">
-        <h1>Exams</h1>
+
+        <div class="d-flex justify-content-between">
+            <p class="m-0 font-size-24">Exams</p>
+            <a href="{% url 'exams:exam-add' %}" class="btn btn-primary btn-rounded mt-auto mb-auto"><span class="ion ion-ios-plus-outline"></span>&nbsp;Create New Exam</a>
+        </div>
+
+        <hr class="sidebar-divider m-20" />
+
         {% if exams %}
         <table class="table table-hover table-inner-bordered table-responsive">
             <thead>
                 <tr class="alert alert-primary filled-lm">
-                <th>SN</th>
-                <th>Exam Name</th>
-                <th>Session</th>
-                <th>Class</th>
+                    <th>SN</th>
+                    <th>Exam Name</th>
+                    <th>Session</th>
+                    <th>Class</th>
+                    <th class="text-center bg-dark-dm bg-white-lm">Details / Edit</th>
                 </tr>
             </thead>
             <tbody>
                 {% for exam in exams %}
                 <tr>
                   <th>{{ forloop.counter }}</th>
-                  <th>{{ exam.name }}</th>
+                  <th><a href="{% url 'exams:exam-detail' exmid=exam.pk %}" class="text-decoration-none text-reset" target="_blank" draggable="false">{{ exam.display_exam_name }}</a></th>
                   <th>{{ exam.session }}</th>
                   <th>{{ exam.cls }}</th>
+                  <th>
+                    <a href="{% url 'exams:exam-detail' exmid=exam.id %}" class="btn btn-sm btn-rounded btn-success"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
+                    <a href="{% url 'exams:exam-edit' exmid=exam.id %}" class="btn btn-sm btn-rounded btn-secondary"><span class="fa fa-edit">&nbsp;&nbsp;</span>Edit</a>
+                  </th>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -2,10 +2,22 @@
 {% load static %}
 {% block content %}
 <div class="content">
+    <h1>Exam section</h1>
     <div class="card">
-        <h5 class="card-title">
-            Exam Home Page (under construction)
-        </h5>
+        <h5 class="card-title">Exam Home</h5>
+        <hr class="sidebar-divider" />
+
+        <p class="text-monospace font-size-18">
+            When you create an <code class="code">Exam</code> then all the students in that class are automatically
+            associated with the exam, with the <code class="code">Result</code> and <code class="code">Mark</code>
+            objects for all subjects created.
+            <br><br>
+            Also, any new Student created in that class will be automatically associated with all the <code class="code">Exam</code>
+            in his/her class, again with all the <code class="code">Mark</code> created and associated.
+        </p>
+        <p>
+            <a href="{% url 'exams:exams' %}">All Exams</a>
+        </p>
     </div>
 </div>
 {% endblock content %}

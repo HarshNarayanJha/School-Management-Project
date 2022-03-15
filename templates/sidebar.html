@@ -28,12 +28,13 @@
 
       <br />
 
-      <h5 class="sidebar-title"><a href="{% url 'exam:home' %}" class="text-light-dm">Exams</a></h5>
+      <h5 class="sidebar-title"><a href="{% url 'exams:home' %}" class="text-light-dm">Exams</a></h5>
       <div class="sidebar-divider"></div>
-      <a href="{% url 'exam:home' %}" class="sidebar-link">Exam Home</a>
-      <a href="{% url 'exam:exams' %}" class="sidebar-link">Exams</a>
+      <!-- <a href="{% url 'exams:home' %}" class="sidebar-link">Exam Home</a> -->
+      <a href="{% url 'exams:exams' %}" class="sidebar-link">Exams</a>
       <a href="/admin/exam/exam/" class="sidebar-link">Exams (Admin)</a>
-      <a href="/admin/exam/exam/add/" class="sidebar-link">Add Exam</a>
+      <a href="{% url 'exams:exam-add' %}" class="sidebar-link">Add Exam</a>
+      <a href="/admin/exam/exam/add/" class="sidebar-link">Add Exam (Admin)</a>
       <!-- <a href="#" class="sidebar-link">Map</a> -->
       <!-- <a href="#" class="sidebar-link">Messenger</a> -->
     </div>

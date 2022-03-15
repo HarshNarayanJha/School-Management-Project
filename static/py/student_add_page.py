@@ -1,5 +1,5 @@
 from browser import document, html
-from student_edit_options import genders, admission_categories, social_categories, classes
+from student_add_options import genders, admission_categories, social_categories, classes
 
 # Append the gender options!
 for i in genders:
@@ -18,8 +18,8 @@ for i in admission_categories:
 # Append the social_categories options!
 for i in social_categories:
     elem = html.OPTION(f"{i[1]}")
-    elem.attrs["id"] = f"social_category_{i[1].lower()}"
-    elem.attrs["value"] = i[1]
+    elem.attrs["id"] = f"social_category_{i[0].lower()}"
+    elem.attrs["value"] = i[0]
     document['social_category'] <= elem
 
 # Append the class options!

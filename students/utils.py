@@ -2,6 +2,10 @@
 Some utility functions with multiple usages
 """
 
+import datetime
+from students.models import Student
+
+
 def get_uid_warning(uid: str) -> str:
         """
         Returns the templated message for the warning of existing `UID`,
@@ -44,3 +48,8 @@ def get_update_success_message(name: str) -> str:
             was successfully updated."
 
     return msg
+
+def get_birthdays():
+        today = datetime.date.today()
+        birthdays: list[Student] = Student.objects.filter(dob__day=today.day, dob__month=today.month)
+        return birthdays

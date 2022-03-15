@@ -6,16 +6,20 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.contrib import messages
 from django.urls import reverse
+import datetime
 import uuid
 import csv
 
 from .models import Student, Teacher, CLASSES
-from .utils import get_create_success_message, get_roll_warning, get_uid_warning, get_update_success_message
+from .utils import get_create_success_message, get_roll_warning, get_uid_warning, get_update_success_message,\
+                   get_birthdays
 
 
 def home(request: HttpRequest):
 
-    context = {}
+    context = {
+        'birthdays': get_birthdays(),
+    }
 
     dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
     if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
@@ -100,6 +104,8 @@ def students(request: HttpRequest):
         'classes': CLASSES or [],
         'genders': Student.GENDERS or [],
         'pagination_get_parameters': pagination_get_parameters,
+
+        'birthdays': get_birthdays(),
     }
 
     dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
@@ -163,7 +169,7 @@ def student_add(request: HttpRequest):
 def student_detail(request: HttpRequest, uid: str):
 
     try:
-        stu = Student.objects.get(uid=uid)
+        stu: Student = Student.objects.get(uid=uid)
     except ObjectDoesNotExist:
         context = {
             'message_404': f'Student with UID <code class="code font-size-18 text-secondary">{uid}</code> was <span class="text-danger">not found</span>!'
@@ -173,7 +179,8 @@ def student_detail(request: HttpRequest, uid: str):
         return render(request, '404.html', context=context)
 
     context = {
-        'stu': stu
+        'stu': stu,
+        'social_category_display': dict(Student.SOCIAL_CATEGORIES)[stu.social_category],
     }
 
     dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
@@ -222,7 +229,7 @@ def student_edit(request: HttpRequest, uid: str):
         'stu': stu,
         'genders': list(Student.GENDERS),
         'admission_categories': list(Student.ADMISSION_CATEGORIES),
-        'social_categories': list(Student.SOCIAL_CATEGORIES),
+        'social_categories': dict(Student.SOCIAL_CATEGORIES),
         'classes': CLASSES
     }
 

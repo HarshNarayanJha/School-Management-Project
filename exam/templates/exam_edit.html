@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Student Management | Exams | Edit Class {{ exam.cls }} {{ exam.display_exam_name }} ({{ exam.session }})
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <div class="card">
+        <!-- Title section -->
+        <h2 class="text-success-dm text-primary-lm d-inline">
+            <a href="{% url 'exams:exam-detail' exmid=exam.id %}" target="_blank">{{ exam.display_exam_name }}</a>
+        </h2>
+        <hr class="sidebar-divider">
+        <h3 class="content-title">
+            <span class="font-size-16 my-5 text-muted">Class:</span> <span class="font-size-18 text-secondary-dm code">{{ exam.cls }}</span>
+            <br>
+            <span class="font-size-16 my-5 text-muted">Session:</span> <span class="font-size-18 text-primary code">{{ exam.session }}</span>
+        </h3>
+        <code class="code">Note: For editing exam name, class or session, do that via the admin site</code>
+        <!-- End Title section -->
+
+        <hr class="sidebar-divider" />
+        
+        {% include 'utils/autofill_exam_form_data.html' %}
+        <form action="." method="POST">
+        {% csrf_token %}
+
+        {% for result in exam.result_set.get_queryset %}
+            <div class="card bg-very-dark-dm bg-light-lm mx-0" id="{{ student.uid }}">
+                <div class="d-flex flex-md-row flex-column">
+
+                    <div class="col-md-3 col-12 bg-dark-dm bg-white-lm mr-20 p-card">
+                        <span class="card-title">Roll No. <span class="text-secondary-dm code font-size-24">{{ result.student.roll }}</span></span>
+                        <div class="font-size-20 text-primary font-weight-bold">
+                            <a href="{% url 'students:student-detail' uid=result.student.uid %}" target="_blank" class="text-decoration-none">{{ result.student.student_name }}</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9 col-12 table-responsive mt-15">
+                        <table class="table table-hover table-bordered table-outer-bordered">
+                            <thead>
+                                <tr class="bg-white-lm">
+                                <th class="alert alert-secondary filled-lm">SUBJECTS</th>
+                                <!-- {% for sub, sub_display in subjects %}
+                                    <th id="label_{{ sub }}">{{ sub_display }}</th>
+                                {% endfor %} -->
+                                {% for mark in result.marks_set.get_queryset %}
+                                    <th id="label_{{ mark.subject }}">{{ mark.display_subject_name|upper }}</th>
+                                {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                <th class="alert alert-success filled-lm">MARKS</th>
+                                {% for mark in result.marks_set.get_queryset %}
+                                    <th>
+                                        <input name="{{ mark.subject }}_mark_ob" id="{{ mark.subject }}_mark_ob" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_ob|default:'' }}">
+                                        /
+                                        <input name="{{ mark.subject }}_mark_mx" id="{{ mark.subject }}_mark_mx" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_mx|default:'' }}">
+                                    </th>
+                                {% endfor %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        <input type="submit" value="Save!" class="btn btn-action btn-block btn-primary mt-20">
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script type="text/python" type="module" id="exam_edit_options">
+    subjects = {{ subjects|safe }}
+</script>
+<script type="text/python3" src="{% static 'py/exam_autofill_dummy_marks.py' %}"></script>
+{% endblock scripts %}

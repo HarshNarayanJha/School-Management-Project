@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    School Management | Exams | Class {{ exam.cls }} {{ exam.display_exam_name }} ({{ exam.session }})
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <div class="card">
+        <!-- Title section -->
+        <div class="d-flex justify-content-between">
+            <h2 class="text-success-dm text-primary-lm d-inline">{{ exam.display_exam_name }}</h2>
+            <a href="{% url 'exams:exam-edit' exmid=exam.id %}" class="btn btn-secondary btn-action mt-auto mb-auto"><span class="ion ion-edit"></span>&nbsp;Edit</a>
+        </div>
+        <hr class="sidebar-divider">
+        <h3 class="content-title">
+            <span class="font-size-16 my-5 text-muted">Class:</span> <span class="font-size-18 text-secondary-dm code">{{ exam.cls }}</span>
+            <br>
+            <span class="font-size-16 my-5 text-muted">Session:</span> <span class="font-size-18 text-primary code">{{ exam.session }}</span>
+        </h3>
+        <!-- End Title section -->
+
+        <hr class="sidebar-divider">
+
+        <div class="mt-20">
+            <!-- {% for result in exam.result_set.get_queryset %}
+                <h1>{{ result.student }}</h1>
+                {% for mark in result.marks_set.get_queryset %}
+                    <p>{{ mark }}</p>
+                {% endfor %}
+            {% endfor %} -->
+
+            {% for result in exam.result_set.get_queryset %}
+            <div class="card bg-very-dark-dm bg-light-lm mx-0" id="{{ student.uid }}">
+                <div class="d-flex flex-md-row flex-column">
+
+                    <div class="col-md-3 col-12 bg-dark-dm bg-white-lm mr-20 p-card">
+                        <span class="card-title">Roll No. <span class="text-secondary-dm code font-size-24">{{ result.student.roll }}</span></span>
+                        <div class="font-size-20 text-primary font-weight-bold">
+                            <a href="{% url 'students:student-detail' uid=result.student.uid %}" target="_blank" class="text-decoration-none">{{ result.student.student_name }}</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9 col-12 table-responsive mt-15">
+                        <table class="table table-hover table-bordered table-outer-bordered">
+                            <thead>
+                                <tr class="bg-white-lm">
+                                <th class="alert alert-secondary filled-lm">SUBJECTS</th>
+                                {% for mark in result.marks_set.get_queryset %}
+                                    <th id="label_{{ mark.subject }}">{{ mark.display_subject_name|upper }}</th>
+                                {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-white-lm">
+                                <th class="alert alert-success filled-lm">MARKS</th>
+                                {% for mark in result.marks_set.get_queryset %}
+                                    <th class="text-center">
+                                        <span name="{{ mark.subject }}_mark_ob" id="{{ mark.subject }}_mark_ob" class="w-100">{{ mark.marks_ob|default:'-' }}</span>
+                                        /
+                                        <span name="{{ mark.subject }}_mark_mx" id="{{ mark.subject }}_mark_mx" class="w-100">{{ mark.marks_mx|default:'-' }}</span>
+                                    </th>
+                                {% endfor %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock content %}
