@@ -13,7 +13,7 @@ def generate_dummy_data():
 
 generate_dummy_data()
 
-print(dummy_data)
+# print(dummy_data)
 
 @bind(autofill_but, 'click')
 def autofill_dummy_data(ev):

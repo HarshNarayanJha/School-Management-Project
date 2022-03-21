@@ -18,7 +18,7 @@
             <br>
             <span class="font-size-16 my-5 text-muted">Session:</span> <span class="font-size-18 text-primary code">{{ exam.session }}</span>
         </h3>
-        <code class="code">Note: For editing exam name, class or session, do that via the admin site</code>
+        <code class="code">Note: For editing exam name, class or session, do that via the <a href="/admin/exam/exam/{{ exam.id }}/" class="text-decoration-none" target="_blank">admin site</a></code>
         <!-- End Title section -->
 
         <hr class="sidebar-divider" />
@@ -47,7 +47,7 @@
                                     <th id="label_{{ sub }}">{{ sub_display }}</th>
                                 {% endfor %} -->
                                 {% for mark in result.marks_set.get_queryset %}
-                                    <th id="label_{{ mark.subject }}">{{ mark.display_subject_name|upper }}</th>
+                                    <th id="label_{{ mark.subject }}">{{ mark.subject|upper }}</th>
                                 {% endfor %}
                                 </tr>
                             </thead>
@@ -56,9 +56,9 @@
                                 <th class="alert alert-success filled-lm">MARKS</th>
                                 {% for mark in result.marks_set.get_queryset %}
                                     <th>
-                                        <input name="{{ mark.subject }}_mark_ob" id="{{ mark.subject }}_mark_ob" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_ob|default:'' }}">
+                                        <input name="{{ mark.subject.subject_name }}_mark_ob" id="{{ mark.subject.subject_name }}_mark_ob" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_ob|default:'' }}">
                                         /
-                                        <input name="{{ mark.subject }}_mark_mx" id="{{ mark.subject }}_mark_mx" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_mx|default:'' }}">
+                                        <input name="{{ mark.subject.subject_name }}_mark_mx" id="{{ mark.subject.subject_name }}_mark_mx" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_mx|default:'' }}">
                                     </th>
                                 {% endfor %}
                                 </tr>

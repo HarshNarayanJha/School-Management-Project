@@ -5,6 +5,17 @@ Some utility functions with multiple usages
 import datetime
 from students.models import Student
 
+def get_invalid_value_message(value_name: str, value: str, line_no: int, uid: str, expected_vals: "list[str]") -> str:
+
+        """
+        Returns the formatted message template for invalid value while parsing students data!
+        """
+
+        msg = f"Invalid {value_name} <span class=\"font-weight-bold\">{value}</span>\
+                on line <span class=\"text-primary\">{line_no}</span>\
+                of UID <span class=\"text-secondary\">{uid}</span>.\
+                Should be one of {expected_vals}"
+        return msg
 
 def get_uid_warning(uid: str) -> str:
         """

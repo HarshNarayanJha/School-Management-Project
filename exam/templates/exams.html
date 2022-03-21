@@ -14,6 +14,63 @@
         </div>
 
         <hr class="sidebar-divider m-20" />
+        <!-- Filter Form (Collapsable!!! yoo hoooooo...) -->
+        <details id="filter_collapse" class="collapse-panel card mx-0 pl-20 mb-10 bg-very-dark-dm bg-light-lm p-10">
+            <summary class="collapse-header card-title border-0">
+            Filters and Controls 
+            {% if is_filter %}
+                <span class="text-secondary text-monospace">[filter applied]</span>:
+            {% endif %}
+            </summary>
+            <div class="collapse-content border-0">
+
+            <form action="." method="get">
+                <div class="form-group form-inline w-200">
+                    <label for="exams_per_page">Exams per page:</label>
+                    <select class="form-control" name="exams_per_page" id="exams_per_page">
+                        <option id="exm_per_page_10" value="10">10</option>
+                        <option id="exm_per_page_20" value="20">20</option>
+                        <option id="exm_per_page_50" value="50">50</option>
+                        <option id="exm_per_page_100" value="100">100</option>
+                        <option id="exm_per_page_200" value="200">200</option>
+                        <option id="exm_per_page_500" value="500">500</option>
+                    </select>
+                </div>
+
+                <div class="d-flex flex-column flex-lg-row justify-content-around">
+                    <div class="form-group form-inline">
+                        <label for="exams_filter_name">Find/Filter by Exam Name:</label>
+                        <select class="form-control" name="exams_filter_name" id="exams_filter_name">
+                        </select>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="exams_filter_session">Find/Filter by Exam Session:</label>
+                        <input class="form-control" type="text" name="exams_filter_session" id="exams_filter_session" value="{{ request.GET.exams_filter_session }}" pattern="20[0-9]{2}-20[0-9]{2}" maxlength="9">
+                    </div>
+                </div>
+
+                <div class="form-group form-inline w-200">
+                    <label for="exams_filter_cls">Filter by Class:</label>
+                    <select class="form-control" name="exams_filter_cls" id="exams_filter_cls">
+                    </select>
+                </div>
+
+                <input type="hidden" name="is_filter" id="is_filter">
+
+                <input type="submit" value="Find/Filter!" class="btn btn-success">
+                <!-- TODO: Make the anchor tag also uninteractable if disabled... -->
+                <button id="filter_form_reset" class="btn btn-danger disabled" disabled><a class="text-reset text-decoration-none" href="{% url 'exams:exams' %}">Clear all Filters</a></button>
+            </form>
+            </div>
+            <div class="alert alert-secondary">
+            {% if is_filter %}
+                <p class="m-0 font-size-16"><span class="text-primary font-weight-semi-bold">{{ num_all_exams }}</span> Exam{{ num_all_exams|pluralize }} filtered !</p>
+            {% else %}
+                <p class="m-0 font-size-16"><span class="text-primary font-weight-semi-bold">{{ num_all_exams }}</span> total Exam{{ num_all_exams|pluralize }} !</p>
+            {% endif %}
+            </div>
+        </details>
+        <!-- /Filter Form -->
 
         {% if exams %}
         <table class="table table-hover table-inner-bordered table-responsive">
@@ -42,11 +99,157 @@
             </tbody>
         </table>
         {% else %}
-            <p>No exams added yet...</p>
+            {% if is_filter %}
+                <p>The filters you set caused all exams to disappear...</p>
+            {% else %}
+                <p>No exams added yet...</p>
+            {% endif %}
         {% endif %}
+
+        <!-- Pagination -->
+        {% if exams.has_other_pages %}
+        <ul class="pagination mt-20 text-center">
+            <!-- Previous page -->
+            {% if exams.has_previous %}
+                <li class="page-item">
+                    <a href="?page={{ exams.previous_page_number }}{{ pagination_get_parameters }}" class="page-link">
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+                {% if exams.number > 3 %}
+                    <li class="page-item">
+                        <a href="?page=1{{ pagination_get_parameters }}" class="page-link">
+                        1
+                        <span class="sr-only">1</span>
+                        </a>
+                    </li>
+                    {% if exams.number > 4 %}
+                        <li class="page-item ellipsis"></li>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled">
+                    <a href="#" class="page-link">
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for i in exams.paginator.page_range %}
+                {% if exams.number == i %}
+                    <li class="page-item active"><a class="page-link" href="?page={{ i }}{{ pagination_get_parameters }}">{{ i }}</a></li>
+                {% elif i > exams.number|add:'-3' and i < exams.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}{{ pagination_get_parameters }}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if exams.has_next %}
+                {% if exams.number < exams.paginator.num_pages|add:'-3' %}
+                    <li class="page-item ellipsis"></li>
+                    <li class="page-item">
+                    <a href="?page={{ exams.paginator.num_pages }}{{ pagination_get_parameters }}" class="page-link">
+                        {{ exams.paginator.num_pages }}
+                        <span class="sr-only">Next</span>
+                    </a>
+                    </li>
+                    {% if exams.has_next %}
+                    <li class="page-item">
+                        <a href="?page={{ exams.next_page_number }}{{ pagination_get_parameters }}" class="page-link">
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                        <span class="sr-only">Next</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled">
+                    <a href="#" class="page-link">
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            {% endif %}
+            <form action="." method="get" class="mt-10 d-flex justify-content-center">
+                <div class="form-text">Go to Page number:&nbsp;</div>
+                <div class="w-50">
+                    <input type="number" class="form-control text-center" name="page" id="page-number">
+                    
+                    <input type="hidden" value="{{ request.GET.exams_per_page }}" name="exams_per_page">
+                    <input type="hidden" value="{{ request.GET.exams_filter_name }}" name="exams_filter_name">
+                    <input type="hidden" value="{{ request.GET.exams_filter_cls }}" name="exams_filter_cls">
+                    <input type="hidden" value="{{ is_filter }}" name="is_filter">
+                </div>
+            </form>
+        </ul>
+        {% endif %}
+        <!-- Pagination End -->
     </div>
 </div>
 {% endblock content %}
+
+{% block scripts %}
+<script type="text/python3">
+    from browser import document, html
+
+    filter_form_reset = document["filter_form_reset"]
+    
+    if bool({{ is_filter }}):
+        document['filter_collapse'].attrs['open'] = ""
+        del filter_form_reset.attrs["disabled"]
+        filter_form_reset.classList.remove("disabled")
+    
+    exm_per_page_select = document['exams_per_page']
+    exm_per_page_10 = document['exm_per_page_10']
+    
+    exm_per_page = "{{ request.GET.exams_per_page }}" or 10
+    opt = document[f"exm_per_page_{% templatetag openbrace %}exm_per_page{% templatetag closebrace %}"]
+    
+    opt.attrs["selected"] = ""
+    #-----------------------------------
+    
+    exam_names = {{ exam_types|safe }}
+
+    # Append the exam type options!
+    exm_none = html.OPTION("-----")
+    exm_none.attrs["id"] = f"exams_filter_name_None"
+    exm_none.attrs["value"] = ''
+    document['exams_filter_name'] <= exm_none
+
+    for i in exam_names:
+        elem = html.OPTION(f"{i[1]}")
+        elem.attrs["id"] = f"exams_filter_name_{i[0].lower()}"
+        elem.attrs["value"] = i[0]
+        document['exams_filter_name'] <= elem
+
+    # pre-select the correct option!
+    filter_name = "{{ request.GET.exams_filter_name }}".lower() or None
+
+    name_opt = document[f"exams_filter_name_{% templatetag openbrace %}filter_name{% templatetag closebrace %}"]
+    name_opt.attrs["selected"] = ""
+
+    #
+    classes = {{ classes|safe }}
+
+    # Append the class options!
+    cls_none = html.OPTION("-----")
+    cls_none.attrs["id"] = f"exams_filter_cls_None"
+    cls_none.attrs["value"] = ''
+    document['exams_filter_cls'] <= cls_none
+
+    for i in classes:
+        elem = html.OPTION(f"{i[1]}")
+        elem.attrs["id"] = f"exams_filter_cls_{i[1].lower()}"
+        elem.attrs["value"] = i[1]
+        document['exams_filter_cls'] <= elem
+
+    # pre-select the correct option!
+    filter_cls = "{{ request.GET.exams_filter_cls }}".lower() or None
+
+    cls_opt = document[f"exams_filter_cls_{% templatetag openbrace %}filter_cls{% templatetag closebrace %}"]
+    cls_opt.attrs["selected"] = ""
+</script>
+{% endblock scripts %}
 
 <!--
 {% for exam in exams %}

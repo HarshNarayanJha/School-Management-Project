@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="{% static 'css/fontawesome/css/all.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/ionicons/ionicons.css' %}">
     <link rel="stylesheet" href="{% static 'css/animate/animate.css' %}">
-
-    <link rel="stylesheet" href="{% static 'css/school_management.css' %}">
     {% block css %}
     
     {% endblock css %}
@@ -84,7 +82,7 @@
     which will scan your usages and generate a .js file with only those modules which are used by ya. -->
     
     <!-- But I am using the random library -->
-    <script src="{% static 'js/Brython-3.10.4/brython_stdlib.js' %}"></script>
+    <script defer src="{% static 'js/Brython-3.10.4/brython_stdlib.js' %}"></script>
     {% block scripts %}
     
     {% endblock scripts %}

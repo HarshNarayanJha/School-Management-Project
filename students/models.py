@@ -1,23 +1,8 @@
 from django.db import models
+
 from django.contrib.auth.models import User, Group, Permission
 from django.core.validators import RegexValidator
-from django.http import HttpResponseForbidden
-
-SUBJECTS = (("MATH", "Mathematics"),
-            ("PHY", "Physics"),
-            ("CHEM", "Chemistry"),
-            ("BIO", "Biology"),
-            ("CS", "Computer Science"),
-            ("ENG", "English"),
-            ("HIN", "Hindi"),
-            ("SANS", "Sanskrit"),
-            ("PHE", "Physical Education"),
-            )
-
-CLASSES = (
-            ("I","I"),("II","II"),("III","III"),("IV","IV"),("V","V"),("VI","VI"),("VII","VII"),
-            ("VIII","VIII"),("IX","IX"),("X","X"),("XI","XI"),("XII","XII")
-        )
+from django.contrib import messages
 
 TEACHERS_GROUP_NAME = "Teachers"
 TEACHER_USER_DEFAULT_PASSWORD = "123456"
@@ -31,6 +16,22 @@ GROUPS = {
                           "add student", "change student", "view student",
                           "view teacher"],
 }
+
+class Class(models.Model):
+    class Meta:
+        verbose_name = "Class"
+        verbose_name_plural = "Classes"
+
+    CLASSES = (
+            ("I","I"),("II","II"),("III","III"),("IV","IV"),("V","V"),("VI","VI"),("VII","VII"),
+            ("VIII","VIII"),("IX","IX"),("X","X"),("XI","XI"),("XII","XII")
+        )
+
+    cls = models.CharField(verbose_name="Class", max_length=4, blank=False, null=False, choices=CLASSES)#, editable=False)
+    cls_subjects = models.ManyToManyField(to='exam.Subject', verbose_name="Subjects of the Class")
+
+    def __str__(self) -> str:
+        return self.cls
 
 class Student(models.Model):
     ADMISSION_CATEGORIES = (("I","I"),("II","II"),("III","III"),("IV","IV"),("V","V"))
@@ -56,11 +57,23 @@ class Student(models.Model):
     phone_regex = RegexValidator(r'^\d{10}$', "Phone number should be of 10 digits")
     phone_number = models.CharField("Contact Number", max_length=10, blank=False, null=False, validators=[phone_regex])
 
-    cls = models.CharField(verbose_name="Class",max_length=4, blank=False, null=False,choices=CLASSES)
+    cls = models.ForeignKey(to=Class, verbose_name="Class", on_delete=models.CASCADE, blank=False, null=False)
     roll = models.IntegerField(verbose_name="Roll No.", blank=False, null=False)
 
     def __str__(self) -> str:
         return f"{self.student_name}"
+
+    def get_subjects_opted(self) -> str:
+        cls: Class = Class.objects.get(cls=self.cls)
+        return cls.cls_subjects.all()
+        # if "Harsh" in self.student_name:
+        #     return cls.cls_subjects.all().exclude(subject_name__in=["BIO", "HIN", "SANS"])
+        # elif "Sakshi" in self.student_name:
+        #     return cls.cls_subjects.all().exclude(subject_name__in=["MATH", "HIN", "SANS"])
+        # elif "Vaibhav" in self.student_name:
+        #     return cls.cls_subjects.all().exclude(subject_name__in=["BIO", "HIN", "SANS"])
+        # elif "Adarsh" in self.student_name:
+        #     return cls.cls_subjects.all().exclude(subject_name__in=["BIO", "HIN", "SANS"])
 
 class Teacher(models.Model):
     teacher_name = models.CharField("Teacher's Name", max_length=30)
@@ -73,8 +86,10 @@ class Teacher(models.Model):
     doj = models.DateField("Date of Joining", blank=False, null=False)
     salary = models.DecimalField("Salary (in rupees)", decimal_places=2, max_digits=10, blank=False, null=False)
 
-    subject = models.CharField("Subject", max_length=20, blank=True, null=True, choices=SUBJECTS)
-    teacher_of_class = models.CharField(verbose_name="Class Tecaher Of", max_length=4, blank=True, null=True, choices=CLASSES)
+    # subject = models.CharField("Subject", max_length=20, blank=True, null=True, choices=SUBJECTS)
+    subject = models.ForeignKey(to="exam.Subject", on_delete=models.CASCADE, verbose_name="Subject", related_name='subject_teachers')
+    # teacher_of_class = models.CharField(verbose_name="Class Tecaher Of", max_length=4, blank=True, null=True, choices=Class.CLASSES)
+    teacher_of_class = models.OneToOneField(to=Class, on_delete=models.CASCADE, verbose_name="Class Teacher Of", related_name='class_teacher', blank=True, null=True)
 
     def __str__(self) -> str:
         return f"{self.teacher_name}"
@@ -85,7 +100,7 @@ class Teacher(models.Model):
             teachers_gp, created = Group.objects.get_or_create(name=TEACHERS_GROUP_NAME)
             self.user.groups.add(teachers_gp)
 
-            # Group was created right now, it won't have permissions (django is not that smart!)
+            # if the Group was created right now, it won't have permissions (django is not that smart!)
             # so we need to add permissions to it...
             if created:
                 for perm in GROUPS[TEACHERS_GROUP_NAME]:
@@ -93,7 +108,7 @@ class Teacher(models.Model):
                     for each_perm in dj_perms:
                         teachers_gp.permissions.add(each_perm)
         else:
-            # TODO: Somehow error the user that username already exists,
+            # TODO: Somehow show error to user that username already exists,
             # probably before clicking the save button in admin site
             return None
 

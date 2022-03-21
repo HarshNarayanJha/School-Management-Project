@@ -47,7 +47,7 @@
                                 <tr class="bg-white-lm">
                                 <th class="alert alert-secondary filled-lm">SUBJECTS</th>
                                 {% for mark in result.marks_set.get_queryset %}
-                                    <th id="label_{{ mark.subject }}">{{ mark.display_subject_name|upper }}</th>
+                                    <th id="label_{{ mark.subject }}">{{ mark.subject|upper }}</th>
                                 {% endfor %}
                                 </tr>
                             </thead>
@@ -56,9 +56,9 @@
                                 <th class="alert alert-success filled-lm">MARKS</th>
                                 {% for mark in result.marks_set.get_queryset %}
                                     <th class="text-center">
-                                        <span name="{{ mark.subject }}_mark_ob" id="{{ mark.subject }}_mark_ob" class="w-100">{{ mark.marks_ob|default:'-' }}</span>
+                                        <span name="{{ mark.subject }}_mark_ob" id="{{ mark.subject }}_mark_ob" class="w-100">{{ mark.marks_ob|default_if_none:'-' }}</span>
                                         /
-                                        <span name="{{ mark.subject }}_mark_mx" id="{{ mark.subject }}_mark_mx" class="w-100">{{ mark.marks_mx|default:'-' }}</span>
+                                        <span name="{{ mark.subject }}_mark_mx" id="{{ mark.subject }}_mark_mx" class="w-100">{{ mark.marks_mx|default_if_none:'-' }}</span>
                                     </th>
                                 {% endfor %}
                                 </tr>

@@ -1,5 +1,5 @@
 from browser import document, bind
-from student_edit_options import admission_categories, genders, social_categories, classes
+from student_add_options import admission_categories, genders, social_categories, classes
 from random import choice
 
 autofill_but = document['autofill_dummy_data']

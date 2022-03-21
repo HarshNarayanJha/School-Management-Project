@@ -12,3 +12,11 @@ urlpatterns = [
     path('students/<str:uid>/edit/', views.student_edit, name='student-edit'),
     path('students/upload/bulk/', views.students_upload, name='students-upload'),
 ]
+
+debug_urlpatterns = [
+    path('debug/', views.debug, name='debug'),
+    path('debug/create/subjects/', views.debug_create_subjects, name='debug-subjects-create'),
+    path('debug/create/classes/', views.debug_create_classes, name='debug-classes-create'),
+]
+
+urlpatterns += debug_urlpatterns

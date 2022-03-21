@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import redirect, render
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -10,9 +11,12 @@ import datetime
 import uuid
 import csv
 
-from .models import Student, Teacher, CLASSES
-from .utils import get_create_success_message, get_roll_warning, get_uid_warning, get_update_success_message,\
-                   get_birthdays
+
+from .models import Student, Teacher, Class
+from exam.models import Subject, CLASS_SUBJECTS
+
+from .utils import get_invalid_value_message, get_create_success_message, get_roll_warning, get_uid_warning,\
+                    get_update_success_message, get_birthdays
 
 
 def home(request: HttpRequest):
@@ -25,6 +29,48 @@ def home(request: HttpRequest):
     if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
 
     return render(request, 'students_home.html', context=context)
+
+def debug(request: HttpRequest):
+    context = {}
+
+    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
+    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
+
+    return render(request, 'utils/debug.html', context=context)
+
+def debug_create_subjects(request: HttpRequest):
+    subject_objs = []
+    for subject in Subject.SUBJECTS:
+        if not Subject.objects.filter(subject_name=subject[0]).exists():
+            subject_objs.append(Subject(subject_name=subject[0]))
+
+    Subject.objects.bulk_create(subject_objs)
+
+    return redirect('students:debug')
+
+def debug_create_classes(request: HttpRequest):
+    cls_objs = []
+    for cls in Class.CLASSES:
+        if not Class.objects.filter(cls=cls[0]).exists():
+            _cls: Class = Class.objects.create(cls=cls[0])
+
+            _cls_subjects_raw: list[str] = CLASS_SUBJECTS[_cls.cls]
+            cls_subjects: list[Subject] = []
+
+            for _sub in _cls_subjects_raw:
+                cls_subjects.append(Subject.objects.get_or_create(subject_name=_sub)[0])
+
+            _cls.cls_subjects.set(cls_subjects)
+            cls_objs.append(_cls)
+
+    try:
+        # This gives integrity error with `student_class.id`.
+        # don't know why, but last class (12th) gets succesfully created, and all subjects assinged!
+        Class.objects.bulk_create(cls_objs)
+    except:
+        print("H" + "o"*15 + ":Err" + "o"*15 + "r")
+    
+    return redirect('students:debug')
 
 def students(request: HttpRequest):
 
@@ -67,7 +113,7 @@ def students(request: HttpRequest):
                                     aadhar_number__icontains=students_filter_aadhar,
                                     mothers_name__icontains=students_filter_mother,
                                     fathers_name__icontains=students_filter_father,
-                                    cls=students_filter_cls,
+                                    cls__cls=students_filter_cls,
                                     gender__icontains=students_filter_gender).order_by('roll')
 
         else:
@@ -101,11 +147,9 @@ def students(request: HttpRequest):
         'num_all_students': len(all_students),
         'num_students': len(students),
         'is_filter': is_filter,
-        'classes': CLASSES or [],
+        'classes': Class.CLASSES or [],
         'genders': Student.GENDERS or [],
         'pagination_get_parameters': pagination_get_parameters,
-
-        'birthdays': get_birthdays(),
     }
 
     dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
@@ -116,7 +160,8 @@ def students(request: HttpRequest):
 def student_add(request: HttpRequest):
 
     if request.method == "POST":
-        same_cls_roll = Student.objects.filter(cls=request.POST.get('cls')).filter(roll=request.POST.get('roll'))
+        _cls, _cls_created = Class.objects.get_or_create(cls=request.POST.get('cls'))
+        same_cls_roll = Student.objects.filter(cls=_cls).filter(roll=request.POST.get('roll'))
         same_uid = Student.objects.filter(uid=request.POST.get('uid'))
 
         if same_cls_roll.exists():
@@ -136,7 +181,7 @@ def student_add(request: HttpRequest):
                                         mothers_name=request.POST.get("mothers_name"),
                                         admission_category=request.POST.get("admission_category"),
                                         social_category=request.POST.get("social_category"),
-                                        uid=request.POST.get("uid"), cls=request.POST.get("cls"),
+                                        uid=request.POST.get("uid"), cls=_cls,
                                         roll=request.POST.get("roll"), gender=request.POST.get("gender"),
                                         dob=request.POST.get("dob"), doa=request.POST.get("doa"),
                                         aadhar_number=request.POST.get("aadhar_number"), phone_number=request.POST.get("phone_number"))
@@ -146,12 +191,6 @@ def student_add(request: HttpRequest):
 
             except IntegrityError as e:
                 print(e)
-                # uid_href = "{"+"url 'students:student-detail' uid={}".format(request.POST.get('uid')) + "}"
-                # uid_href = f"/students/{request.POST.get('uid')}/#:~:text={request.POST.get('uid')}"
-
-                # msg = f"Student with UID <a class=\"alert-link font-weight-bolder text-decoration-none\"\
-                #         href=\"{uid_href}\" target=\"_blank\">{request.POST.get('uid')}</a> already exists.. maybe you mistyped!"
-
                 msg = get_uid_warning(request.POST.get('uid'))
                 messages.warning(request, msg, extra_tags="danger")
 
@@ -159,7 +198,7 @@ def student_add(request: HttpRequest):
         'genders': list(Student.GENDERS),
         'admission_categories': list(Student.ADMISSION_CATEGORIES),
         'social_categories': list(Student.SOCIAL_CATEGORIES),
-        'classes': CLASSES
+        'classes': Class.CLASSES
     }
     dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
     if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
@@ -192,7 +231,8 @@ def student_edit(request: HttpRequest, uid: str):
     stu: Student = Student.objects.get(uid=uid)
 
     if request.method == "POST":
-        same_cls_roll = Student.objects.filter(cls=request.POST.get('cls')).filter(roll=request.POST.get('roll'))
+        _cls = Class.objects.get(cls=request.POST.get('cls'))
+        same_cls_roll = Student.objects.filter(cls=_cls).filter(roll=request.POST.get('roll'))
         same_cls_roll = same_cls_roll.exclude(uid=stu.uid)
 
         if same_cls_roll.exists():
@@ -218,7 +258,10 @@ def student_edit(request: HttpRequest, uid: str):
             # stu.roll = request.POST.get('roll')
 
             for field, value in request.POST.items():
-                setattr(stu, field, value)
+                if field == "cls":
+                    setattr(stu, field, _cls)
+                else:
+                    setattr(stu, field, value)
 
             stu.save()
             messages.success(request, get_update_success_message(stu.student_name), extra_tags='success')
@@ -230,7 +273,7 @@ def student_edit(request: HttpRequest, uid: str):
         'genders': list(Student.GENDERS),
         'admission_categories': list(Student.ADMISSION_CATEGORIES),
         'social_categories': dict(Student.SOCIAL_CATEGORIES),
-        'classes': CLASSES
+        'classes': Class.CLASSES
     }
 
     dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
@@ -246,16 +289,47 @@ def students_upload(request: HttpRequest):
     if request.method == 'POST' and request.FILES['students-file-input']:
         uploaded_file = request.FILES['students-file-input']
         fs = FileSystemStorage()
-        filename = fs.save(str(uuid.uuid4())+".csv", uploaded_file)
-        f = open(filename,"r")
+        filename = fs.save(str(uuid.uuid4()) + ".csv", uploaded_file)
+        f = open(filename, "r")
         csvreader = csv.reader(f)
 
         # skip header
         next(csvreader)
 
+        line_no = 2
+
         for d in csvreader:
+            # Class check
+            if d[7] not in dict(Class.CLASSES):
+                msg = get_invalid_value_message("Class", d[7], line_no, d[6], list(dict(Class.CLASSES)))
+                messages.error(request, msg, extra_tags="danger")
+                print(f"Invalid Class {d[7]} on line {line_no} of UID {d[6]}")
+                return redirect("students:students-upload")
+
+            cls, cls_created = Class.objects.get_or_create(cls=d[7])
+
+            # Gender check
+            if d[9] not in dict(Student.GENDERS):
+                msg = get_invalid_value_message("Gender", d[9], line_no, d[6], list(dict(Student.GENDERS)))
+                messages.error(request, msg, extra_tags="danger")
+                print(f"Invalid Gender {d[9]} on line {line_no} of UID {d[6]}")
+                return redirect("students:students-upload")
+
+            # Social Cat and Addmission Cat check
+            if d[4] not in dict(Student.ADMISSION_CATEGORIES):
+                msg = get_invalid_value_message("Admission Category", d[4], line_no, d[6], list(dict(Student.ADMISSION_CATEGORIES)))
+                messages.error(request, msg, extra_tags="danger")
+                print(f"Invalid Admission Category {d[4]} on line {line_no} of UID {d[6]}")
+                return redirect("students:students-upload")
+
+            if d[5] not in dict(Student.SOCIAL_CATEGORIES).values():
+                msg = get_invalid_value_message("Social Category", d[5], line_no, d[6], list(dict(Student.SOCIAL_CATEGORIES)))
+                messages.error(request, msg, extra_tags="danger")
+                print(f"Invalid Social Category {d[5]} on line {line_no} of UID {d[6]}")
+                return redirect("students:students-upload")
+
             s = Student(school_code=d[0], student_name=d[1], fathers_name=d[2], mothers_name=d[3], admission_category=d[4],
-            social_category=d[5], uid=d[6], cls=d[7], roll=d[8], gender=d[9], dob=d[10], doa=d[11], aadhar_number=d[12], phone_number=d[13])
+            social_category=d[5], uid=d[6], cls=cls, roll=d[8], gender=d[9], dob=d[10], doa=d[11], aadhar_number=d[12], phone_number=d[13])
 
             # If the student with the same UID already exists, don't add it to the bulk create list...
             if Student.objects.filter(uid=s.uid).exists():
@@ -267,6 +341,8 @@ def students_upload(request: HttpRequest):
         fs.delete(filename)
 
         Student.objects.bulk_create(students_list)
+        line_no += 1
+        print(line_no)
         #['school_code','student_name','fathers_name','mothers_name','admission_category',
         #'social_category','uid','cls','roll','gender','dob','doa','aadhar_number','phone_number'])
 

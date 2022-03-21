@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.utils.safestring import SafeString
 
-from .models import Student, Teacher
+from .models import Student, Teacher, Class
 from exam.models import Result, Marks
 
 import nested_admin
@@ -77,3 +77,4 @@ User.add_to_class('is_class_teacher', is_class_teacher)
 
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Teacher, TeacherAdmin)
+admin.site.register(Class)

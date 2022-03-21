@@ -10,16 +10,29 @@
 <div class="content">
     <div class="card">
         <h2 class="card-title">Students Bulk Upload</h2>
+        <hr class="dropdown-divider mb-10" />
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.extra_tags }} mb-10 animated fast shake" role="alert">
+                    <button class="close" data-dismiss="alert" type="button" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    <h4 class="alert-heading">Parsing Error!</h4>
+                    {{ message|safe }}
+                </div>
+            {% endfor %}
+        {% endif %}
 
         <div class="card-content">
             {% if students_added %}
-                <h5>The Following Students were uploaded:</h5>
+                <h5 class="text-success">The Following Students were created succesfully:</h5>
                 <hr class="sidebar-divider" />
                 {% for student in students_added %}
-                    <div class="text-monospace">{{ foorloop.counter }}. {{ student.student_name }}</div>
+                    <div class="text-monospace">{{ forloop.counter }}. {{ student.student_name }} (Class: {{ student.cls }}, Roll: {{ student.roll }})</div>
                 {% endfor %}
             {% else %}
-                No Students were Uploaded
+                <p class="font-size-16 text-monospace text-danger">No Students were created</p>
             {% endif %}
         </div>
     </div>
@@ -29,7 +42,7 @@
             <h2 class="card-title">Some Students were not added, cause they already existed in the database</h2>
             <hr class="sidebar-divider" />
             {% for student_not in students_not_added %}
-                <div class="text-monospace">{{ foorloop.counter }}. {{ student_not.student_name }}</div>
+                <div class="text-monospace">{{ forloop.counter }}. {{ student_not.student_name }} (Class: {{ student_not.cls }}, Roll: {{ student_not.roll }})</div>
             {% endfor %}
         </div>
     {% endif %}

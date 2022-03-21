@@ -12,9 +12,17 @@
 
     <div class="card">
         <p class="text-monospace font-size-18">
+        
+        <strong class="text-muted">
+        NOTE: If you have started with a blank database, then you may want to create all the classes and subjects
+        by using the Debug links below.
+        It's not important, as if they are not created, then they will be created for you as per as required!
+        </strong>
 
-        Currently, the Students Part is completely working...
-        Now I will work on Exams part.
+        <br /><br />
+        
+        Currently, the Students Part is completely working... Now I will work on Exams part. <br />
+        The Exams system is now up and running... Now I will work on Teachers system.
         <br /><br />
         The class teacher will create a new Exam, enter the primary details (exam name, session, class), and save it.
         (hence: if one exam is conducted in multiple classes together, then each class will have its own exam under the same name),
@@ -47,13 +55,12 @@
         <a href="{% static 'samplefile/Sample_File.csv' %}"><h6>Click here to Download Template CSV For Data Uploading</h6></a>
     </div>
 
-    <!-- <div class="card">
+    <div class="card">
         <h5 class="card-title">Dev Links</h5>
         <div class="card-content">
-            <div><a href="{% url 'students:students' %}">Students Page</a></div>
-            <div><a href="{% url 'exam:home' %}">Exams Home</a></div>
+            <div><a href="{% url 'students:debug' %}">Debug</a></div>
         </div>
-    </div> -->
+    </div>
 </div>
 {% endblock content %}
 

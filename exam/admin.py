@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.http import HttpRequest
 
-from students.models import Student
-from .models import Exam, Result, Marks
+from students.models import Student, Class
+from .models import Exam, Result, Marks, Subject
 from .forms import ResultsInlineFormSet
 import nested_admin
 
@@ -13,10 +13,25 @@ class MarksInline(nested_admin.NestedTabularInline):
     # Makes the Marks inline collapsable
     classes = ["collapse"]
 
+    can_delete = False
+
+    # Restrict the `subject` dropdown in the Marks inline to only those subjects
+    # which are in this class
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "subject":
+            exam_obj = Exam.objects.get(id=request.resolver_match.kwargs['object_id'])
+
+            kwargs["limit_choices_to"] = {'class': exam_obj.cls}
+
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
+
 class ResultsInline(nested_admin.NestedTabularInline):
     model = Result
     formset = ResultsInlineFormSet
     inlines = [MarksInline]
+
+    can_delete = False
 
     # NOTE #1:
     # Probably want this, but the issue with this is that
@@ -64,7 +79,7 @@ class ResultsInline(nested_admin.NestedTabularInline):
 
     ## Enabling this method causes an error to raise when saving
     # Don't know why ???
-    # As minimum no. of slots = total_no of students in class...
+    # As minimum no. of slots (should=) total_no of students in class...
 
     # def get_min_num(self, request, obj=None, **kwargs):
     #     if obj is None:
@@ -106,6 +121,7 @@ class ExamAdmin(nested_admin.NestedModelAdmin):
         return super().get_inline_instances(request, obj)
 
 admin.site.register(Exam, ExamAdmin)
+admin.site.register(Subject)
 # These aren't registered in production
 # Can be registered for debugging...
 # admin.site.register(Result)
