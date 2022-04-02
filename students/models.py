@@ -2,7 +2,6 @@ from django.db import models
 
 from django.contrib.auth.models import User, Group, Permission
 from django.core.validators import RegexValidator
-from django.contrib import messages
 
 TEACHERS_GROUP_NAME = "Teachers"
 TEACHER_USER_DEFAULT_PASSWORD = "123456"
@@ -33,6 +32,10 @@ class Class(models.Model):
     def __str__(self) -> str:
         return self.cls
 
+class StudentManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().order_by("cls", "roll")
+
 class Student(models.Model):
     ADMISSION_CATEGORIES = (("I","I"),("II","II"),("III","III"),("IV","IV"),("V","V"))
     SOCIAL_CATEGORIES = (("GEN","General"),("SC","SC"),("ST","ST"),("OBC","OBC"))
@@ -59,6 +62,8 @@ class Student(models.Model):
 
     cls = models.ForeignKey(to=Class, verbose_name="Class", on_delete=models.CASCADE, blank=False, null=False)
     roll = models.IntegerField(verbose_name="Roll No.", blank=False, null=False)
+
+    objects = StudentManager()
 
     def __str__(self) -> str:
         return f"{self.student_name}"

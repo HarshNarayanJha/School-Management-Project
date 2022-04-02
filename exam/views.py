@@ -186,8 +186,7 @@ def exam_edit(request: HttpRequest, exmid: int):
 
                         for mark in marks:
                             if mark.subject.subject_name == sub:
-                                if mark_ob:
-                                    mark.marks_ob = mark_ob
+                                mark.marks_ob = mark_ob or None
                                 # mark.marks_mx = mark_mx
 
                         result.marks_set.get_queryset().bulk_update(marks, ['marks_ob'])#, 'marks_mx'])

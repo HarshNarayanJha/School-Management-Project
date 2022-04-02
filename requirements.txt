@@ -2,7 +2,10 @@ asgiref==3.4.1
 backports.zoneinfo==0.2.1
 Django==4.0.1
 django-nested-admin==3.4.0
+djangorestframework==3.13.1
+python-dotenv==0.14.0
 python-monkey-business==1.0.0
+pytz==2022.1
 six==1.16.0
 sqlparse==0.3.0
 tzdata==2021.5

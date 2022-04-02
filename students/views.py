@@ -328,8 +328,17 @@ def students_upload(request: HttpRequest):
                 print(f"Invalid Social Category {d[5]} on line {line_no} of UID {d[6]}")
                 return redirect("students:students-upload")
 
+            # Here I'm just flipping the key's and values of Student.SOCIAL_CATEGORIES
+            _social_categories = []
+            for cat in Student.SOCIAL_CATEGORIES:
+                _social_categories.append(tuple(sorted(cat, reverse=True)))
+            _social_categories = tuple(_social_categories)
+
+            # To get the key from the value :) reverse sense!
+            social_cat = dict(_social_categories)[d[5]]
+
             s = Student(school_code=d[0], student_name=d[1], fathers_name=d[2], mothers_name=d[3], admission_category=d[4],
-            social_category=d[5], uid=d[6], cls=cls, roll=d[8], gender=d[9], dob=d[10], doa=d[11], aadhar_number=d[12], phone_number=d[13])
+            social_category=social_cat, uid=d[6], cls=cls, roll=d[8], gender=d[9], dob=d[10], doa=d[11], aadhar_number=d[12], phone_number=d[13])
 
             # If the student with the same UID already exists, don't add it to the bulk create list...
             if Student.objects.filter(uid=s.uid).exists():

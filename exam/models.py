@@ -17,10 +17,7 @@ class Exam(models.Model):
     exam_name = models.CharField("Exam Name", max_length=50, choices=EXAM_TYPES, help_text="Select the type of exam from the dropdown.")
     session_regex = RegexValidator(r'^20\d{2}-20\d{2}$', "should be in the format 20XX-20XX")
     session = models.CharField("Exam Session", max_length=10, validators=[session_regex], help_text="Session of the exam. like 2021-2022")
-    # cls = models.CharField("Exam of Class", max_length=4, choices=Class.CLASSES, help_text="The class of which the exam is held. \
-                                                                                    # This will be pre-filled with your class if you are a class teacher.")
-    cls = models.ForeignKey(to=Class, verbose_name="Class", on_delete=models.CASCADE, blank=False, null=False, help_text="The class of which the exam is held.\
-                                                                                    This will be pre-filled with your class if you are a class teacher.")
+    cls = models.ForeignKey(to=Class, verbose_name="Class", on_delete=models.CASCADE, blank=False, null=False, help_text="The class of which the exam is held. This will be pre-filled with your class if you are a class teacher.")
 
     def __str__(self) -> str:
         return f"{self.exam_name} Examination ({self.session}) Class {self.cls}"
@@ -77,9 +74,12 @@ class Subject(models.Model):
                 ("PHE", "Physical Education"),
             )
 
-    subject_name = models.CharField(verbose_name="Subject", max_length=20, blank=False, null=False, choices=SUBJECTS)
+    subject_name = models.CharField(verbose_name="Subject", max_length=20, blank=False, null=False, choices=SUBJECTS, unique=True)
 
     def __str__(self) -> str:
+        return dict(self.SUBJECTS)[self.subject_name]
+
+    def get_subject_name_display(self) -> str:
         return dict(self.SUBJECTS)[self.subject_name]
 
 # (Default) Mapping of Classes to Subjects
@@ -106,5 +106,5 @@ def student_created(sender, instance: Student, created, **kwargs):
         exams = Exam.objects.filter(cls=instance.cls)
         for exam in exams:
             result: Result = exam.result_set.create(student=instance)
-            for subject, subject_display in instance.cls.cls_subjects:
+            for subject in instance.cls.cls_subjects.all():
                 mark: Marks = result.marks_set.create(subject=subject)
