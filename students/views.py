@@ -1,4 +1,3 @@
-import re
 from django.shortcuts import redirect, render
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -7,17 +6,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.contrib import messages
 from django.urls import reverse
-import datetime
-import uuid
-import csv
 
+import uuid
+import pandas as pd
 
 from .models import Student, Teacher, Class
 from exam.models import Subject, CLASS_SUBJECTS
 
 from .utils import get_invalid_value_message, get_create_success_message, get_roll_warning, get_uid_warning,\
-                    get_update_success_message, get_birthdays
-
+                    get_update_success_message, get_birthdays, format_students_data, prepare_dark_mode
 
 def home(request: HttpRequest):
 
@@ -25,17 +22,13 @@ def home(request: HttpRequest):
         'birthdays': get_birthdays(),
     }
 
-    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
-    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
-
+    context = prepare_dark_mode(request, context)
     return render(request, 'students_home.html', context=context)
 
 def debug(request: HttpRequest):
     context = {}
 
-    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
-    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
-
+    context = prepare_dark_mode(request, context)
     return render(request, 'utils/debug.html', context=context)
 
 def debug_create_subjects(request: HttpRequest):
@@ -72,6 +65,10 @@ def debug_create_classes(request: HttpRequest):
     
     return redirect('students:debug')
 
+def debug_delete_students(request: HttpRequest):
+    Student.objects.all().delete()
+    return redirect("students:debug")
+
 def students(request: HttpRequest):
 
     def create_paginator(all_students, page, per_page=10):
@@ -88,6 +85,7 @@ def students(request: HttpRequest):
     page = request.GET.get('page', 1)
     is_filter = bool(request.GET.get('is_filter', False))
 
+    # Filter Params
     students_per_page = int(request.GET.get('students_per_page', 10) or 10)
     students_filter_name = request.GET.get('students_filter_name', "").strip()
     students_filter_uid = request.GET.get('students_filter_uid', "").strip()
@@ -96,12 +94,13 @@ def students(request: HttpRequest):
     students_filter_mother = request.GET.get('students_filter_mother', "").strip()
     students_filter_father = request.GET.get('students_filter_father', "").strip()
     students_filter_cls = request.GET.get('students_filter_cls', "").strip()
+    students_filter_section = request.GET.get('students_filter_section', "").strip()
     students_filter_gender = request.GET.get('students_filter_gender', "").strip()
 
     if (students_filter_name or students_filter_uid or \
         students_filter_phone or students_filter_aadhar or \
         students_filter_mother or students_filter_father or \
-        students_filter_cls or students_filter_gender) or (students_per_page != 10):
+        students_filter_cls or students_filter_section or students_filter_gender) or (students_per_page != 10):
 
         is_filter = True
 
@@ -114,6 +113,7 @@ def students(request: HttpRequest):
                                     mothers_name__icontains=students_filter_mother,
                                     fathers_name__icontains=students_filter_father,
                                     cls__cls=students_filter_cls,
+                                    cls__section__icontains=students_filter_section,
                                     gender__icontains=students_filter_gender).order_by('roll')
 
         else:
@@ -124,13 +124,15 @@ def students(request: HttpRequest):
                                     aadhar_number__icontains=students_filter_aadhar,
                                     mothers_name__icontains=students_filter_mother,
                                     fathers_name__icontains=students_filter_father,
-                                    gender__icontains=students_filter_gender).order_by('cls', 'roll')
+                                    cls__section__icontains=students_filter_section,
+                                    gender__icontains=students_filter_gender).order_by('cls', 'cls__section', 'roll')
     else:
         is_filter = False
         all_students = Student.objects.all().order_by('cls', 'roll')
 
     paginator, students = create_paginator(all_students, page, students_per_page)
 
+    # URI's GET request filter params
     pagination_get_parameters = f"&students_per_page={request.GET.get('students_per_page', '')}"
     pagination_get_parameters += f"&students_filter_name={request.GET.get('students_filter_name', '')}"
     pagination_get_parameters += f"&students_filter_uid={request.GET.get('students_filter_uid', '')}"
@@ -139,6 +141,7 @@ def students(request: HttpRequest):
     pagination_get_parameters += f"&students_filter_mother={request.GET.get('students_filter_mother', '')}"
     pagination_get_parameters += f"&students_filter_father={request.GET.get('students_filter_father', '')}"
     pagination_get_parameters += f"&students_filter_cls={request.GET.get('students_filter_cls', '')}"
+    pagination_get_parameters += f"&students_filter_section={request.GET.get('students_filter_section', '')}"
     pagination_get_parameters += f"&students_filter_gender={request.GET.get('students_filter_gender', '')}"
     pagination_get_parameters += f"&is_filter={bool(request.GET.get('is_filter', False))}"
 
@@ -148,13 +151,12 @@ def students(request: HttpRequest):
         'num_students': len(students),
         'is_filter': is_filter,
         'classes': Class.CLASSES or [],
+        'sections': Class.get_classwise_sections(),
         'genders': Student.GENDERS or [],
         'pagination_get_parameters': pagination_get_parameters,
     }
 
-    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
-    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
-
+    context = prepare_dark_mode(request, context)
     return render(request, 'students.html', context=context)
 
 def student_add(request: HttpRequest):
@@ -200,9 +202,8 @@ def student_add(request: HttpRequest):
         'social_categories': list(Student.SOCIAL_CATEGORIES),
         'classes': Class.CLASSES
     }
-    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
-    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
 
+    context = prepare_dark_mode(request, context)
     return render(request, 'student_add.html', context=context)
 
 def student_detail(request: HttpRequest, uid: str):
@@ -213,8 +214,8 @@ def student_detail(request: HttpRequest, uid: str):
         context = {
             'message_404': f'Student with UID <code class="code font-size-18 text-secondary">{uid}</code> was <span class="text-danger">not found</span>!'
         }
-        dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
-        if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
+
+        context = prepare_dark_mode(request, context)
         return render(request, '404.html', context=context)
 
     context = {
@@ -222,9 +223,7 @@ def student_detail(request: HttpRequest, uid: str):
         'social_category_display': dict(Student.SOCIAL_CATEGORIES)[stu.social_category],
     }
 
-    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
-    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
-
+    context = prepare_dark_mode(request, context)
     return render(request, 'student_detail.html', context=context)
 
 def student_edit(request: HttpRequest, uid: str):
@@ -241,22 +240,6 @@ def student_edit(request: HttpRequest, uid: str):
             messages.warning(request, msg, extra_tags="danger")
 
         else:
-            # complete mess, this doesn't work!!!
-            # stu.student_name = request.POST.get('student_name')
-            # stu.fathers_name = request.POST.get('fathers_name')
-            # stu.mothers_name = request.POST.get('mothers_name')
-            # stu.dob = request.POST.get('dob')
-            # stu.gender = request.POST.get('gender')
-            # stu.aadhar_number = request.POST.get('aadhar_number')
-            # stu.phone_number = request.POST.get('phone_number')
-            # stu.school_code = request.POST.get('school_code')
-            # stu.uid = request.POST.get('uid')
-            # stu.admission_category = request.POST.get('admission_category')
-            # stu.social_category = request.POST.get('social_category')
-            # stu.doa = request.POST.get('doa')
-            # stu.cls = request.POST.get('cls')
-            # stu.roll = request.POST.get('roll')
-
             for field, value in request.POST.items():
                 if field == "cls":
                     setattr(stu, field, _cls)
@@ -276,91 +259,121 @@ def student_edit(request: HttpRequest, uid: str):
         'classes': Class.CLASSES
     }
 
-    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
-    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
-
+    context = prepare_dark_mode(request, context)
     return render(request, 'student_edit.html', context=context)
 
 def students_upload(request: HttpRequest):
+    
+    new_students_list: list[Student] = []
+    existing_students_list: list[Student] = []
 
-    students_list = []
-    duplicate_students_list = []
+    students_extra_subjects: dict[Student, list[Subject]] = {}
     
     if request.method == 'POST' and request.FILES['students-file-input']:
         uploaded_file = request.FILES['students-file-input']
         fs = FileSystemStorage()
-        filename = fs.save(str(uuid.uuid4()) + ".csv", uploaded_file)
-        f = open(filename, "r")
-        csvreader = csv.reader(f)
+        filename = fs.save(f"{uuid.uuid4()}.csv", uploaded_file)
 
-        # skip header
-        next(csvreader)
+        data = pd.read_excel(filename)
+        data = format_students_data(data)
+        dt = data.to_dict("index")
 
-        line_no = 2
+        roll = 0
+        last_cls, last_sec = "", ""
 
-        for d in csvreader:
-            # Class check
-            if d[7] not in dict(Class.CLASSES):
-                msg = get_invalid_value_message("Class", d[7], line_no, d[6], list(dict(Class.CLASSES)))
-                messages.error(request, msg, extra_tags="danger")
-                print(f"Invalid Class {d[7]} on line {line_no} of UID {d[6]}")
-                return redirect("students:students-upload")
+        for d in dt.values():
+            # print(d)
+            extra_subjects = []
 
-            cls, cls_created = Class.objects.get_or_create(cls=d[7])
+            # If it's a normal Class, it's good to go....
+            if d['cls'] in dict(Class.CLASSES).values():
+                cls, cls_created = Class.objects.get_or_create(cls=d['cls'], section=d['section'])
 
-            # Gender check
-            if d[9] not in dict(Student.GENDERS):
-                msg = get_invalid_value_message("Gender", d[9], line_no, d[6], list(dict(Student.GENDERS)))
-                messages.error(request, msg, extra_tags="danger")
-                print(f"Invalid Gender {d[9]} on line {line_no} of UID {d[6]}")
-                return redirect("students:students-upload")
+            # Oh no! those scary-n-weird class names :(
+            else:
+                # XI - Science with Computer Sc./I.P.
+                # XI - Science without Computer Sc./I.P.
+                # XII - Commerce with I.P. Electives
+                # XII - Commerce without I.P. Electives
 
-            # Social Cat and Addmission Cat check
-            if d[4] not in dict(Student.ADMISSION_CATEGORIES):
-                msg = get_invalid_value_message("Admission Category", d[4], line_no, d[6], list(dict(Student.ADMISSION_CATEGORIES)))
-                messages.error(request, msg, extra_tags="danger")
-                print(f"Invalid Admission Category {d[4]} on line {line_no} of UID {d[6]}")
-                return redirect("students:students-upload")
+                # But easy handling!
+                cls_number, subject_part = d['cls'].split(" - ")
 
-            if d[5] not in dict(Student.SOCIAL_CATEGORIES).values():
-                msg = get_invalid_value_message("Social Category", d[5], line_no, d[6], list(dict(Student.SOCIAL_CATEGORIES)))
-                messages.error(request, msg, extra_tags="danger")
-                print(f"Invalid Social Category {d[5]} on line {line_no} of UID {d[6]}")
-                return redirect("students:students-upload")
+                if ' with ' in subject_part:
+                    stream, with_subject = subject_part.split(" with ")
+                    # Just a Temporary mapping!
+                    if with_subject == "Computer Sc./I.P.":
+                        with_subject = "CS"
+                    elif with_subject == "I.P. Electives":
+                        with_subject = "PHE"
 
-            # Here I'm just flipping the key's and values of Student.SOCIAL_CATEGORIES
-            _social_categories = []
-            for cat in Student.SOCIAL_CATEGORIES:
-                _social_categories.append(tuple(sorted(cat, reverse=True)))
-            _social_categories = tuple(_social_categories)
+                    extra_subjects.append(with_subject)
 
-            # To get the key from the value :) reverse sense!
-            social_cat = dict(_social_categories)[d[5]]
+                elif ' without ' in subject_part:
+                    stream, without_subject = subject_part.split(" without ")
 
-            s = Student(school_code=d[0], student_name=d[1], fathers_name=d[2], mothers_name=d[3], admission_category=d[4],
-            social_category=social_cat, uid=d[6], cls=cls, roll=d[8], gender=d[9], dob=d[10], doa=d[11], aadhar_number=d[12], phone_number=d[13])
+                # Create the Class XI and XIIth way!
+                cls, cls_created = Class.objects.get_or_create(cls=cls_number, section=d['section'], stream=stream)
+
+            rev_social_catergories = {v: k for k, v in dict(Student.SOCIAL_CATEGORIES).items()}
+            social_cat = dict(rev_social_catergories)[d['social_category']]
+
+            rev_minorities = {v: k for k, v in dict(Student.MINORITIES).items()}
+            minority = dict(rev_minorities)[d['minority']]
+
+            s = Student()
+            for attr, val in d.items():
+                if attr == 'cls':
+                    setattr(s, attr, cls)
+                elif attr == 'social_category':
+                    setattr(s, attr, social_cat)
+                elif attr == 'minority':
+                    setattr(s, attr, minority)
+                else:
+                    setattr(s, attr, val)
+
+            # Roll No. stuff
+            if not last_cls: last_cls = cls.cls
+            if not last_sec: last_sec = cls.section
+
+            if cls.cls != last_cls: roll = 1
+            elif cls.section != last_sec: roll = 1
+            else: roll += 1
+
+            setattr(s, 'roll', roll)
+            # TODO: Get School Code perfectly
+            setattr(s, 'school_code', '1819')
+
+            extra_subject_objects: list[Subject] = []
+            for subject in extra_subjects:
+                sub, sub_created = Subject.objects.get_or_create(subject_name=subject)
+                extra_subject_objects.append(sub)
+
+            students_extra_subjects[s] = extra_subject_objects
 
             # If the student with the same UID already exists, don't add it to the bulk create list...
+            # we add it to bulk update list
             if Student.objects.filter(uid=s.uid).exists():
-                duplicate_students_list.append(s)
+                existing_students_list.append(s)
             else:
-                students_list.append(s)
+                new_students_list.append(s)
 
-        f.close()
+            last_cls = cls.cls
+            last_sec = cls.section
+
         fs.delete(filename)
 
-        Student.objects.bulk_create(students_list)
-        line_no += 1
-        print(line_no)
-        #['school_code','student_name','fathers_name','mothers_name','admission_category',
-        #'social_category','uid','cls','roll','gender','dob','doa','aadhar_number','phone_number'])
+        Student.objects.bulk_create(new_students_list)
+        for s, subs in students_extra_subjects.items():
+            for sub in subs:
+                s.extra_subjects_opted.through.objects.get_or_create(student=s, subject=sub)
+
+        Student.objects.bulk_update(existing_students_list, fields=("student_name", "cls", "roll", "phone_number", "email", "aadhar_number"), batch_size=10)
 
     context = {
-        "students_added": students_list,
-        "students_not_added": duplicate_students_list
+        "students_added": new_students_list,
+        "students_not_added": existing_students_list
     }
 
-    dark_mode_cookie = request.COOKIES.get("halfmoon_preferredMode") == "dark-mode"
-    if dark_mode_cookie: context['dark_mode'] = 'dark-mode'
-
+    context = prepare_dark_mode(request, context)
     return render(request, 'students_upload.html', context=context)

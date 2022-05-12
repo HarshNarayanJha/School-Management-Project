@@ -30,6 +30,9 @@
                 <hr class="sidebar-divider" />
                 {% for student in students_added %}
                     <div class="text-monospace">{{ forloop.counter }}. {{ student.student_name }} (Class: {{ student.cls }}, Roll: {{ student.roll }})</div>
+                    {% for sub in student.extra_subjects_opted.get_queryset.objects %}
+                        {{ sub }}
+                    {% endfor %}
                 {% endfor %}
             {% else %}
                 <p class="font-size-16 text-monospace text-danger">No Students were created</p>

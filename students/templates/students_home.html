@@ -12,7 +12,7 @@
 
     <div class="card">
         <p class="text-monospace font-size-18">
-        
+        DONT READ, NOT SO IMPORTANT... <br><br>
         <strong class="text-muted">
         NOTE: If you have started with a blank database, then you may want to create all the classes and subjects
         by using the Debug links below.
@@ -45,14 +45,14 @@
             {% csrf_token %}
             <div class="form-group">
                 <div class="custom-file">
-                    <input type="file" accept="text/csv" name="students-file-input" id="students-file-input" required/>
-                    <label for="students-file-input" class="required">Upload Students CSV file</label>
+                    <input type="file" accept="application/vnd.ms-excel" name="students-file-input" id="students-file-input" required/>
+                    <label for="students-file-input" class="required">Upload Students UBI Excel file</label>
                 </div>
             </div>
             <button id="students-upload-submit" type="submit" class="btn btn-action disabled" disabled><span class="fa fa-upload"></span>&nbsp;Upload File</button>
         </form>
         <hr class="dropdown-divider" />
-        <a href="{% static 'samplefile/Sample_File.csv' %}"><h6>Click here to Download Template CSV For Data Uploading</h6></a>
+        <!-- <a href="{% static 'samplefile/Sample_File.csv' %}"><h6>Click here to Download Template CSV For Data Uploading</h6></a> -->
     </div>
 
     <div class="card">
