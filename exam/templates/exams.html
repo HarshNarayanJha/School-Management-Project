@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
     School Management | Exams
@@ -49,11 +50,18 @@
                     </div>
                 </div>
 
-                <div class="form-group form-inline w-200">
-                    <label for="exams_filter_cls">Filter by Class:</label>
-                    <select class="form-control" name="exams_filter_cls" id="exams_filter_cls">
-                    </select>
-                </div>
+                <div class="d-flex flex-lg-row justify-content-start">
+                    <div class="form-group form-inline w-200 mr-10">
+                      <label for="exams_filter_cls">Filter by Class:</label>
+                      <select class="form-control" name="exams_filter_cls" id="exams_filter_cls">
+                      </select>
+                    </div>
+                    <div class="form-group form-inline w-200">
+                      <label for="examts_filter_section">Filter by Section:</label>
+                      <select class="form-control" name="exams_filter_section" id="exams_filter_section">
+                      </select>
+                    </div>
+                  </div>
 
                 <input type="hidden" name="is_filter" id="is_filter">
 
@@ -189,109 +197,12 @@
 {% endblock content %}
 
 {% block scripts %}
-<script type="text/python3">
-    from browser import document, html
-
-    filter_form_reset = document["filter_form_reset"]
-    
-    if bool({{ is_filter }}):
-        document['filter_collapse'].attrs['open'] = ""
-        del filter_form_reset.attrs["disabled"]
-        filter_form_reset.classList.remove("disabled")
-    
-    exm_per_page_select = document['exams_per_page']
-    exm_per_page_10 = document['exm_per_page_10']
-    
-    exm_per_page = "{{ request.GET.exams_per_page }}" or 10
-    opt = document[f"exm_per_page_{% templatetag openbrace %}exm_per_page{% templatetag closebrace %}"]
-    
-    opt.attrs["selected"] = ""
-    #-----------------------------------
-    
-    exam_names = {{ exam_types|safe }}
-
-    # Append the exam type options!
-    exm_none = html.OPTION("-----")
-    exm_none.attrs["id"] = f"exams_filter_name_None"
-    exm_none.attrs["value"] = ''
-    document['exams_filter_name'] <= exm_none
-
-    for i in exam_names:
-        elem = html.OPTION(f"{i[1]}")
-        elem.attrs["id"] = f"exams_filter_name_{i[0].lower()}"
-        elem.attrs["value"] = i[0]
-        document['exams_filter_name'] <= elem
-
-    # pre-select the correct option!
-    filter_name = "{{ request.GET.exams_filter_name }}".lower() or None
-
-    name_opt = document[f"exams_filter_name_{% templatetag openbrace %}filter_name{% templatetag closebrace %}"]
-    name_opt.attrs["selected"] = ""
-
-    #
+<script type="text/python3" type="module" id="exam_filter_options">
+    is_filter = {{ is_filter }}
+    request_get = {{ request.GET.dict|safe }}
+    exam_types = {{ exam_types|safe }}
     classes = {{ classes|safe }}
-
-    # Append the class options!
-    cls_none = html.OPTION("-----")
-    cls_none.attrs["id"] = f"exams_filter_cls_None"
-    cls_none.attrs["value"] = ''
-    document['exams_filter_cls'] <= cls_none
-
-    for i in classes:
-        elem = html.OPTION(f"{i[1]}")
-        elem.attrs["id"] = f"exams_filter_cls_{i[1].lower()}"
-        elem.attrs["value"] = i[1]
-        document['exams_filter_cls'] <= elem
-
-    # pre-select the correct option!
-    filter_cls = "{{ request.GET.exams_filter_cls }}".lower() or None
-
-    cls_opt = document[f"exams_filter_cls_{% templatetag openbrace %}filter_cls{% templatetag closebrace %}"]
-    cls_opt.attrs["selected"] = ""
+    sections: dict[str, list[str]] = {{ sections|safe }}
 </script>
+<script type="text/python3" src="{% static 'py/exam_filter.py' %}"></script>
 {% endblock scripts %}
-
-<!--
-{% for exam in exams %}
-    <div id="{{ foorloop.counter }}" class="card">
-        <div class="card-content">
-            <a href="/admin/exams/exam/{{ exam.id }}/" target="_blank" 
-                class="text-primary font-size-24">{{ forloop.counter }}. {{ exam }}</a>
-            <p>Exam Name: {{ exam.name }}</p>
-            <p>Session: {{ exam.session }}</p>
-            <p>Class: {{ exam.cls }}</p>
-            
-            <div class="sidebar-divider"></div>
-            <!-Results Start->
-            <p class="card-title">Results</p>
-            {% if exam.result_set.get_queryset %}
-                {% for result in exam.result_set.get_queryset %}
-                    <div class="card">
-                        <a href="/admin/students/students/{{ result.student.uid }}/" class="card-title">{{ forloop.counter }}. {{ result.student.full_name }}</a>
-                        <p>Roll: {{ result.student.roll }}</p>
-
-                        <div class="sidebar-divider"></div>
-                        <!-Marks Start->
-                        <p class="card-title">Marks</p>
-                        {% if result.marks_set.get_queryset %}
-                            {% for mark in result.marks_set.get_queryset %}
-                                <div class="card">
-                                    <h1 class="card-title">{{ mark.subject }}</h1>
-                                    <p>Marks Obtained: {{ mark.marks_ob }}</p>
-                                    <p>Out Of: {{ mark.marks_mx }}</p>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p>No Marks added yet...</p>
-                        {% endif %}
-                        <!-Marks End->
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p>No Results added yet...</p>
-            {% endif %}
-            <!-Results End->
-        </div>
-    </div>
-{% endfor %}
--->

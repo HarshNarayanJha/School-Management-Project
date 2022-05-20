@@ -6,18 +6,19 @@ from django.dispatch import receiver
 
 from students.models import Student, Teacher, Class
 
-EXAM_TYPES = (
-    ("PT-1", "Periodic Test - 1"),
-    ("T-1", "Term - 1 Examination"),
-    ("PT-2", "Periodic Test - 2"),
-    ("T-2", "Term - 2 Examination"),
-)
+from .constants import EXAM_TYPES, SUBJECTS, CLASS_SUBJECTS
+
+class ExamManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().order_by("session", "cls")
 
 class Exam(models.Model):
     exam_name = models.CharField("Exam Name", max_length=50, choices=EXAM_TYPES, help_text="Select the type of exam from the dropdown.")
     session_regex = RegexValidator(r'^20\d{2}-20\d{2}$', "should be in the format 20XX-20XX")
     session = models.CharField("Exam Session", max_length=10, validators=[session_regex], help_text="Session of the exam. like 2021-2022")
     cls = models.ForeignKey(to=Class, verbose_name="Class", on_delete=models.CASCADE, blank=False, null=False, help_text="The class of which the exam is held. This will be pre-filled with your class if you are a class teacher.")
+
+    objects = ExamManager()
 
     def __str__(self) -> str:
         return f"{self.exam_name} Examination ({self.session}) Class {self.cls}"
@@ -58,47 +59,18 @@ class Marks(models.Model):
         return 40
 
 class Subject(models.Model):
-    SUBJECTS = (("ENG", "English"),
-                ("HIN", "Hindi"),
-                ("SANS", "Sanskrit"),
-                ("MATH", "Mathematics"),
-                ("EVS", "Environmental Studies"),
-                ("SCI", "Science"),
-                ("SST", "Social Science"),
-
-                ("PHY", "Physics"),
-                ("CHEM", "Chemistry"),
-                ("BIO", "Biology"),
-
-                ("CS", "Computer Science"),
-                ("PHE", "Physical Education"),
-            )
 
     subject_name = models.CharField(verbose_name="Subject", max_length=20, blank=False, null=False, choices=SUBJECTS, unique=True)
 
     def __str__(self) -> str:
-        return dict(self.SUBJECTS)[self.subject_name]
+        if self.subject_name in dict(SUBJECTS):
+            return dict(SUBJECTS)[self.subject_name]
+        else: return self.subject_name
 
     def get_subject_name_display(self) -> str:
-        return dict(self.SUBJECTS)[self.subject_name]
-
-# (Default) Mapping of Classes to Subjects
-CLASS_SUBJECTS: "dict[str: 'list[str]']" = {
-    "I": ["ENG", "HIN", "MATH", "EVS"],
-    "II": ["ENG", "HIN", "MATH", "EVS"],
-    "III": ["ENG", "HIN", "MATH", "EVS"],
-    "IV": ["ENG", "HIN", "MATH", "EVS"],
-    "V": ["ENG", "HIN", "MATH", "EVS"],
-
-    "VI": ["ENG", "HIN", "SANS", "MATH", "SCI", "SST"],
-    "VII": ["ENG", "HIN", "SANS", "MATH", "SCI", "SST"],
-    "VIII": ["ENG", "HIN", "SANS", "MATH", "SCI", "SST"],
-
-    "IX": ["ENG", "HIN", "SANS", "MATH", "SCI", "SST"],
-    "X": ["ENG", "HIN", "SANS", "MATH", "SCI", "SST"],
-    "XI": ["ENG", "HIN", "SANS", "CS", "MATH", "PHY", "CHEM", "BIO", "PHE"],
-    "XII": ["ENG", "HIN", "SANS", "CS", "MATH", "PHY", "CHEM", "BIO", "PHE"],
-}
+        if self.subject_name in dict(SUBJECTS):
+            return dict(SUBJECTS)[self.subject_name]
+        else: return self.subject_name
 
 @receiver(post_save, sender=Student)
 def student_created(sender, instance: Student, created, **kwargs):

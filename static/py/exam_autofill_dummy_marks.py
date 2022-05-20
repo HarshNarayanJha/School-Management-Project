@@ -17,11 +17,11 @@ generate_dummy_data()
 
 @bind(autofill_but, 'click')
 def autofill_dummy_data(ev):
-    print("Autofilling...")
+    print("Autofilling exam marks...")
 
     for input in document.select(".form-control"):
         for field in dummy_data:
-            if input.attrs['id'] == field:
+            if input.attrs['id'] == field and not 'readonly' in input.attrs:
                 input.attrs["value"] = dummy_data[field]
 
         generate_dummy_data()

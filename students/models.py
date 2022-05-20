@@ -3,30 +3,16 @@ from django.db.models.signals import post_save
 
 from django.contrib.auth.models import User, Group, Permission
 from django.core.validators import RegexValidator
-from django.dispatch import receiver
 
-TEACHERS_GROUP_NAME = "Teachers"
-TEACHER_USER_DEFAULT_PASSWORD = "123456"
-# Mapping of Group to Permissions
-# Permissions are searched for using `icontains` lookup, 
-# so `mark` will catch all of the add, view, delete, and change perms
-GROUPS = {
-    TEACHERS_GROUP_NAME: ["view user", 
-                          "add exam", "change exam", "view exam", 
-                          "mark", "result",
-                          "add student", "change student", "view student",
-                          "view teacher"],
-}
+from .constants import CLASSES, CLASSES_NUMBER_MAP, SUBJECTS_OPTIONAL_OUT_OF
+from .constants import TEACHERS_GROUP_NAME, TEACHER_USER_DEFAULT_PASSWORD, GROUPS
+
+from exam.constants import SUBJECTS, CLASS_SUBJECTS
 
 class Class(models.Model):
     class Meta:
         verbose_name = "Class"
         verbose_name_plural = "Classes"
-
-    CLASSES = (
-            ("I","I"),("II","II"),("III","III"),("IV","IV"),("V","V"),("VI","VI"),("VII","VII"),
-            ("VIII","VIII"),("IX","IX"),("X","X"),("XI","XI"),("XII","XII")
-        )
 
     cls = models.CharField(verbose_name="Class", max_length=4, blank=False, null=False, choices=CLASSES)#, editable=False)
     section = models.CharField(verbose_name="Section", max_length=1, blank=True, null=True, help_text="Section name like A, B, C, ...")
@@ -45,11 +31,22 @@ class Class(models.Model):
 
     @classmethod
     def get_classwise_sections(self) -> "dict[str, list[str]]":
+        """
+        Returns the mapping of all Classes and their sections
+        """
         sections = {}
         for _cls in Class.objects.all():
             sections[_cls.cls] = _cls.get_sections()
 
         return sections
+
+    def get_optional_subjects(self):
+        optional_subjects = []
+        if self.cls in SUBJECTS_OPTIONAL_OUT_OF:
+            for subs in SUBJECTS_OPTIONAL_OUT_OF[self.cls]:
+                for sub in subs: optional_subjects.append(sub)
+
+        return optional_subjects
 
 class StudentManager(models.Manager):
     def get_queryset(self):
@@ -108,7 +105,7 @@ class Student(models.Model):
     rte = models.CharField("RTE", max_length=3, null=False, choices=YES_NO_CHOICES)
     kvs_ward = models.CharField("KVS Ward", max_length=3, null=False, choices=YES_NO_CHOICES)
 
-    extra_subjects_opted = models.ManyToManyField(to='exam.Subject', verbose_name="Extra Subjects Opted (if any)")
+    optional_subjects_opted = models.ManyToManyField(to='exam.Subject', verbose_name="Extra Subjects Opted (if any)")
 
     objects = StudentManager()
 
@@ -116,8 +113,9 @@ class Student(models.Model):
         return f"{self.student_name}"
 
     def get_subjects_opted(self):
-        cls: Class = Class.objects.get(cls=self.cls)
-        return cls.cls_subjects.all() + self.extra_subjects_opted.objects().all()
+        cls_subjects = dict(self.cls.cls_subjects.all().values_list()).values()
+        ls = [dict(SUBJECTS)[sub].upper() for sub in cls_subjects if sub.upper() not in self.get_subjects_not_opted()]
+        return ls
 
         # if "Harsh" in self.student_name:
         #     return cls.cls_subjects.all().exclude(subject_name__in=["BIO", "HIN", "SANS"])
@@ -127,6 +125,11 @@ class Student(models.Model):
         #     return cls.cls_subjects.all().exclude(subject_name__in=["BIO", "HIN", "SANS"])
         # elif "Adarsh" in self.student_name:
         #     return cls.cls_subjects.all().exclude(subject_name__in=["BIO", "HIN", "SANS"])
+
+    def get_subjects_not_opted(self):
+        opt_subjects = dict(self.optional_subjects_opted.all().values_list()).values()
+        ls = [dict(SUBJECTS)[sub].upper() for sub in self.cls.get_optional_subjects() if sub not in opt_subjects]
+        return ls
 
 class Teacher(models.Model):
     teacher_name = models.CharField("Teacher's Name", max_length=30)

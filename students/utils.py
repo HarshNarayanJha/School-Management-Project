@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
+from pandas.api.types import CategoricalDtype
 """
 Some utility functions with multiple usages
 """
 
 import datetime
-from students.models import Student
+from students.models import Student, Class
 
 def get_invalid_value_message(value_name: str, value: str, line_no: int, uid: str, expected_vals: "list[str]") -> str:
     """
@@ -122,6 +123,24 @@ def format_students_data(data: pd.DataFrame) -> pd.DataFrame:
     data = data[data.tc_issued != 'YES']
 
     data = data.iloc[:,1:]
-    data.index = np.arange(1, data.shape[0] + 1)
 
+    # Complex   sorting   algorithm...
+    def sort_key(series: pd.Series):
+        if series.name == 'cls':
+            cls_nums = []
+            for x in series.values:
+                cls_nums.append(Class._CLASSES_NUMBER_MAP[x] if x in Class._CLASSES_NUMBER_MAP else Class._CLASSES_NUMBER_MAP[x.split(" - ")[0]])
+
+            return pd.Series(cls_nums)
+
+        else:
+            return series
+
+    data.sort_values(by=['cls', 'section', 'student_name'], inplace=True, key=sort_key)
+
+    # with open('data.txt', 'w') as fp:
+    #     for i in list(data[['cls','section', 'student_name']].values):
+    #         fp.write(f"{i[0]} - {i[1]} - {i[2]}\n")
+
+    data.index = np.arange(1, data.shape[0] + 1)
     return data

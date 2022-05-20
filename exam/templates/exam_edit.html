@@ -43,11 +43,12 @@
                             <thead>
                                 <tr class="bg-white-lm">
                                 <th class="alert alert-secondary filled-lm">SUBJECTS</th>
-                                <!-- {% for sub, sub_display in subjects %}
-                                    <th id="label_{{ sub }}">{{ sub_display }}</th>
-                                {% endfor %} -->
                                 {% for mark in result.marks_set.get_queryset %}
-                                    <th id="label_{{ mark.subject }}">{{ mark.subject|upper }}</th>
+                                    {% if mark.subject|upper in result.student.get_subjects_not_opted %}
+                                        <th id="label_{{ mark.subject }}" class="text-muted">{{ mark.subject|upper }}</th>
+                                    {% else %}
+                                        <th id="label_{{ mark.subject }}">{{ mark.subject|upper }}</th>
+                                    {% endif %}
                                 {% endfor %}
                                 </tr>
                             </thead>
@@ -55,11 +56,19 @@
                                 <tr>
                                 <th class="alert alert-success filled-lm">MARKS</th>
                                 {% for mark in result.marks_set.get_queryset %}
-                                    <th>
-                                        <input name="{{ mark.subject.subject_name }}_mark_ob" id="{{ mark.subject.subject_name }}_mark_ob" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_ob|default:'' }}">
-                                        /
-                                        <input name="{{ mark.subject.subject_name }}_mark_mx" id="{{ mark.subject.subject_name }}_mark_mx" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_mx|default:'' }}">
-                                    </th>
+                                    {% if mark.subject|upper in result.student.get_subjects_not_opted %}
+                                        <th>
+                                            <input name="{{ mark.subject.subject_name }}_mark_ob" id="{{ mark.subject.subject_name }}_mark_ob" type="number" class="form-control w-50 d-inline disabled" value="{{ mark.marks_ob|default:'' }}" readonly>
+                                            /
+                                            <input name="{{ mark.subject.subject_name }}_mark_mx" id="{{ mark.subject.subject_name }}_mark_mx" type="number" class="form-control w-50 d-inline disabled" value="{{ mark.marks_mx|default:'' }}" readonly>
+                                        </th>
+                                        {% else %}
+                                        <th>
+                                            <input name="{{ mark.subject.subject_name }}_mark_ob" id="{{ mark.subject.subject_name }}_mark_ob" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_ob|default:'' }}">
+                                            /
+                                            <input name="{{ mark.subject.subject_name }}_mark_mx" id="{{ mark.subject.subject_name }}_mark_mx" type="number" class="form-control w-50 d-inline" value="{{ mark.marks_mx|default:'' }}">
+                                        </th>
+                                    {% endif %}
                                 {% endfor %}
                                 </tr>
                             </tbody>

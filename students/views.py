@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import redirect, render
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -11,7 +12,10 @@ import uuid
 import pandas as pd
 
 from .models import Student, Teacher, Class
-from exam.models import Subject, CLASS_SUBJECTS
+from exam.models import Subject
+from exam.constants import SUBJECTS, CLASS_SUBJECTS
+
+from .constants import CLASSES, CLASSES_NUMBER_MAP, SUBJECTS_OPTIONAL_OUT_OF
 
 from .utils import get_invalid_value_message, get_create_success_message, get_roll_warning, get_uid_warning,\
                     get_update_success_message, get_birthdays, format_students_data, prepare_dark_mode
@@ -150,7 +154,7 @@ def students(request: HttpRequest):
         'num_all_students': len(all_students),
         'num_students': len(students),
         'is_filter': is_filter,
-        'classes': Class.CLASSES or [],
+        'classes': CLASSES or [],
         'sections': Class.get_classwise_sections(),
         'genders': Student.GENDERS or [],
         'pagination_get_parameters': pagination_get_parameters,
@@ -200,7 +204,7 @@ def student_add(request: HttpRequest):
         'genders': list(Student.GENDERS),
         'admission_categories': list(Student.ADMISSION_CATEGORIES),
         'social_categories': list(Student.SOCIAL_CATEGORIES),
-        'classes': Class.CLASSES
+        'classes': CLASSES
     }
 
     context = prepare_dark_mode(request, context)
@@ -256,7 +260,7 @@ def student_edit(request: HttpRequest, uid: str):
         'genders': list(Student.GENDERS),
         'admission_categories': list(Student.ADMISSION_CATEGORIES),
         'social_categories': dict(Student.SOCIAL_CATEGORIES),
-        'classes': Class.CLASSES
+        'classes': CLASSES
     }
 
     context = prepare_dark_mode(request, context)
@@ -267,7 +271,7 @@ def students_upload(request: HttpRequest):
     new_students_list: list[Student] = []
     existing_students_list: list[Student] = []
 
-    students_extra_subjects: dict[Student, list[Subject]] = {}
+    students_optional_subjects: dict[Student, list[Subject]] = {}
     
     if request.method == 'POST' and request.FILES['students-file-input']:
         uploaded_file = request.FILES['students-file-input']
@@ -282,11 +286,10 @@ def students_upload(request: HttpRequest):
         last_cls, last_sec = "", ""
 
         for d in dt.values():
-            # print(d)
-            extra_subjects = []
+            optional_subjects = []
 
             # If it's a normal Class, it's good to go....
-            if d['cls'] in dict(Class.CLASSES).values():
+            if d['cls'] in dict(CLASSES).values():
                 cls, cls_created = Class.objects.get_or_create(cls=d['cls'], section=d['section'])
 
             # Oh no! those scary-n-weird class names :(
@@ -307,7 +310,7 @@ def students_upload(request: HttpRequest):
                     elif with_subject == "I.P. Electives":
                         with_subject = "PHE"
 
-                    extra_subjects.append(with_subject)
+                    optional_subjects.append(with_subject)
 
                 elif ' without ' in subject_part:
                     stream, without_subject = subject_part.split(" without ")
@@ -344,12 +347,18 @@ def students_upload(request: HttpRequest):
             # TODO: Get School Code perfectly
             setattr(s, 'school_code', '1819')
 
-            extra_subject_objects: list[Subject] = []
-            for subject in extra_subjects:
-                sub, sub_created = Subject.objects.get_or_create(subject_name=subject)
-                extra_subject_objects.append(sub)
+            optional_subject_objects: list[Subject] = []
+            if cls.cls in SUBJECTS_OPTIONAL_OUT_OF:
+                for opts in SUBJECTS_OPTIONAL_OUT_OF[cls.cls]:
+                    optional_subjects.append(random.choice(opts))
+            
+            optional_subjects = list(set(optional_subjects))
 
-            students_extra_subjects[s] = extra_subject_objects
+            for subject in optional_subjects:
+                sub, sub_created = Subject.objects.get_or_create(subject_name=subject)
+                optional_subject_objects.append(sub)
+
+            students_optional_subjects[s] = optional_subject_objects
 
             # If the student with the same UID already exists, don't add it to the bulk create list...
             # we add it to bulk update list
@@ -361,14 +370,17 @@ def students_upload(request: HttpRequest):
             last_cls = cls.cls
             last_sec = cls.section
 
+            # print(roll, last_cls, last_sec)
+
         fs.delete(filename)
 
         Student.objects.bulk_create(new_students_list)
-        for s, subs in students_extra_subjects.items():
+        for s, subs in students_optional_subjects.items():
             for sub in subs:
-                s.extra_subjects_opted.through.objects.get_or_create(student=s, subject=sub)
+                s.optional_subjects_opted.through.objects.get_or_create(student=s, subject=sub)
 
-        Student.objects.bulk_update(existing_students_list, fields=("student_name", "cls", "roll", "phone_number", "email", "aadhar_number"), batch_size=10)
+        # TODO: fix bulk update
+        # Student.objects.bulk_update(existing_students_list, fields=("student_name", "cls", "roll", "phone_number", "email", "aadhar_number"), batch_size=10)
 
     context = {
         "students_added": new_students_list,
@@ -377,3 +389,16 @@ def students_upload(request: HttpRequest):
 
     context = prepare_dark_mode(request, context)
     return render(request, 'students_upload.html', context=context)
+
+# Teachers Area! No Students allowed!
+def teachers(request: HttpRequest):
+    pass
+
+def teacher_add(request: HttpRequest):
+    pass
+
+def teacher_detail(request: HttpRequest):
+    pass
+
+def teacher_edit(request: HttpRequest):
+    pass

@@ -47,7 +47,11 @@
                                 <tr class="bg-white-lm">
                                 <th class="alert alert-secondary filled-lm">SUBJECTS</th>
                                 {% for mark in result.marks_set.get_queryset %}
-                                    <th id="label_{{ mark.subject }}">{{ mark.subject|upper }}</th>
+                                    {% if mark.subject|upper in result.student.get_subjects_not_opted %}
+                                        <th id="label_{{ mark.subject }}" class="text-muted">{{ mark.subject|upper }}</th>
+                                    {% else %}
+                                        <th id="label_{{ mark.subject }}">{{ mark.subject|upper }}</th>
+                                    {% endif %}
                                 {% endfor %}
                                 </tr>
                             </thead>
@@ -56,9 +60,15 @@
                                 <th class="alert alert-success filled-lm">MARKS</th>
                                 {% for mark in result.marks_set.get_queryset %}
                                     <th class="text-center">
-                                        <span name="{{ mark.subject }}_mark_ob" id="{{ mark.subject }}_mark_ob" class="w-100">{{ mark.marks_ob|default_if_none:'-' }}</span>
-                                        /
-                                        <span name="{{ mark.subject }}_mark_mx" id="{{ mark.subject }}_mark_mx" class="w-100">{{ mark.marks_mx|default_if_none:'-' }}</span>
+                                        {% if mark.subject|upper in result.student.get_subjects_not_opted %}
+                                            <span name="{{ mark.subject }}_mark_ob" id="{{ mark.subject }}_mark_ob" class="w-100 text-muted">{{ mark.marks_ob|default_if_none:'-' }}</span>
+                                            /
+                                            <span name="{{ mark.subject }}_mark_mx" id="{{ mark.subject }}_mark_mx" class="w-100 text-muted">{{ mark.marks_mx|default_if_none:'-' }}</span>
+                                        {% else %}
+                                            <span name="{{ mark.subject }}_mark_ob" id="{{ mark.subject }}_mark_ob" class="w-100">{{ mark.marks_ob|default_if_none:'-' }}</span>
+                                            /
+                                            <span name="{{ mark.subject }}_mark_mx" id="{{ mark.subject }}_mark_mx" class="w-100">{{ mark.marks_mx|default_if_none:'-' }}</span>
+                                        {% endif %}
                                     </th>
                                 {% endfor %}
                                 </tr>
