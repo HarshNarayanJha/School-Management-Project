@@ -1,7 +1,8 @@
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.contrib.auth.decorators import login_required, permission_required
 
 from .models import Exam, EXAM_TYPES, Marks, Result, Subject
 
@@ -11,11 +12,13 @@ from students.utils import prepare_dark_mode
 
 from .constants import SUBJECTS, EXAM_TYPES, CLASS_SUBJECTS
 
+@login_required
 def home(request: HttpRequest):
     context = {}
     context = prepare_dark_mode(request, context)
     return render(request, 'exam_home.html', context=context)
 
+@login_required
 def exams(request: HttpRequest):
 
     def create_paginator(all_exams, page, per_page=10):
@@ -39,32 +42,45 @@ def exams(request: HttpRequest):
     exams_filter_cls = request.GET.get('exams_filter_cls', "").strip()
     exams_filter_section = request.GET.get('exams_filter_section', "").strip()
 
+    initial_all_exams = Exam.objects.all()
+    if request.user.is_class_teacher():
+        initial_all_exams = Exam.objects.filter(cls__cls=request.user.teacher.teacher_of_class.cls,
+                                            cls__section=request.user.teacher.teacher_of_class.section)
+
+        if (exams_filter_cls and exams_filter_cls != request.user.teacher.teacher_of_class.cls) \
+            or exams_filter_section and exams_filter_section != request.user.teacher.teacher_of_class.section:
+
+            msg = f"You are not authorised to view the Exams of class {exams_filter_cls} and section {exams_filter_section}"
+            return HttpResponseForbidden(msg)
+
     if (exams_filter_name or exams_filter_session or \
                 exams_filter_cls or exams_filter_section) or (exams_per_page != 10):
 
         is_filter = True
 
         if exams_filter_cls:
-            all_exams = Exam.objects.all().filter(
+            all_exams = initial_all_exams.filter(
                                 exam_name__icontains=exams_filter_name,
                                 session__icontains=exams_filter_session,
                                 cls__cls=exams_filter_cls,
                                 cls__section__icontains=exams_filter_section)
         else:
-            all_exams = Exam.objects.all().filter(
+            all_exams = initial_all_exams.filter(
                                 exam_name__startswith=exams_filter_name,
                                 session__icontains=exams_filter_session)
     else:
         is_filter = False
-        all_exams = Exam.objects.all()
+        all_exams = initial_all_exams
 
     paginator, exams = create_paginator(all_exams, page, exams_per_page)
 
+    # URI's GET request filter params
     pagination_get_parameters = f"&exams_per_page={request.GET.get('exams_per_page', '')}"
     pagination_get_parameters += f"&exams_filter_name={request.GET.get('exams_filter_name', '')}"
     pagination_get_parameters += f"&exams_filter_session={request.GET.get('exams_filter_session', '')}"
-    pagination_get_parameters += f"&exams_filter_cls={request.GET.get('exams_filter_cls', '')}"
-    pagination_get_parameters += f"&exams_filter_section={request.GET.get('exams_filter_section', '')}"
+    if not request.user.is_class_teacher:
+        pagination_get_parameters += f"&exams_filter_cls={request.GET.get('exams_filter_cls', '')}"
+        pagination_get_parameters += f"&exams_filter_section={request.GET.get('exams_filter_section', '')}"
     pagination_get_parameters += f"&is_filter={bool(request.GET.get('is_filter', False))}"
 
     context = {
@@ -81,10 +97,15 @@ def exams(request: HttpRequest):
     context = prepare_dark_mode(request, context)
     return render(request, 'exams.html', context=context)
 
+@login_required
+@permission_required('exam.add_exam', raise_exception=True)
 def exam_add(request: HttpRequest):
 
     if request.method == "POST":
         _cls: Class = Class.objects.get(cls=request.POST.get('cls'), section=request.POST.get('section'))
+        if request.user.is_class_teacher():
+            if request.user.teacher.teacher_of_class != _cls:
+                return HttpResponseForbidden(f"You are not authorized to create Exam for class {_cls}")
 
         new_exam: Exam = Exam.objects.create(exam_name=request.POST.get('exam_name'),
                                             session=request.POST.get('session'),
@@ -98,7 +119,6 @@ def exam_add(request: HttpRequest):
         # But now, I optimised it now it's around 1.5 secs :)
         # But still heavy!
         for student in exam_students:
-            # result: Result = new_exam.result_set.create(student=student)
             result: Result = Result(exam=new_exam, student=student)
             _marks = []
             for subject in _cls.cls_subjects.all():
@@ -124,7 +144,7 @@ def exam_add(request: HttpRequest):
         for mark_set in marks_list:
             Marks.objects.bulk_create(mark_set)
 
-        return redirect('exams:exam-detail', exmid=new_exam.id)
+        return redirect('exams:exam-edit', exmid=new_exam.id)
 
     context = {
         'exam_names': list(EXAM_TYPES) or [],
@@ -136,9 +156,15 @@ def exam_add(request: HttpRequest):
 
     return render(request, 'exam_add.html', context=context)
 
+@login_required
+@permission_required('exam.view_exam', raise_exception=True)
 def exam_detail(request: HttpRequest, exmid: int):
     try:
         exam = Exam.objects.get(pk=exmid)
+        if request.user.is_class_teacher():
+            if request.user.teacher.teacher_of_class != exam.cls:
+                return HttpResponseForbidden(f"You are not authorized to create Exam for class {exam.cls}")
+
     except ObjectDoesNotExist:
         context = {
             'message_404': f'Exam you are looking for was <span class="text-danger">not found</span>!'
@@ -156,12 +182,23 @@ def exam_detail(request: HttpRequest, exmid: int):
     context = prepare_dark_mode(request, context)
     return render(request, 'exam_detail.html', context=context)
 
+@login_required
+@permission_required('exam.change_exam', raise_exception=True)
+@permission_required('exam.change_result', raise_exception=True)
+@permission_required('exam.change_marks', raise_exception=True)
 def exam_edit(request: HttpRequest, exmid: int):
-    exam = Exam.objects.get(pk=exmid)
+    exam: Exam = Exam.objects.get(pk=exmid)
+
+    if request.user.is_class_teacher():
+        if exam.edited_by_class_teacher:
+            return redirect('exam:exam-detail', exmid=exmid)
+
+        if request.user.teacher.teacher_of_class != exam.cls:
+            return HttpResponseForbidden(f"You are not authorized to create Exam for class {exam.cls}")
+
     exam_students = Student.objects.filter(cls=exam.cls).order_by('roll')
 
     if request.method == "POST":
-
         # dict[SUBJECT_NAME, tuple(marks_list (in order of roll), max_marks)]
         subject_marks: dict[str, tuple[list[str], str]] = {}
 
@@ -191,6 +228,8 @@ def exam_edit(request: HttpRequest, exmid: int):
 
                         result.marks_set.get_queryset().bulk_update(marks, ['marks_ob'])#, 'marks_mx'])
 
+        exam.edited_by_class_teacher = True
+        exam.save()
         return redirect('exams:exam-detail', exmid=exmid)
 
     context = {

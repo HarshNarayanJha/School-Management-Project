@@ -19,16 +19,66 @@ SUBJECTS_OPTIONAL_OUT_OF: "dict[str, tuple[tuple[str]]]" = {
     'XII': (("HIN", "SANS", "CS"), ("MATH", "BIO"),),
 }
 
-# Teachers
-TEACHERS_GROUP_NAME = "Teachers"
-TEACHER_USER_DEFAULT_PASSWORD = "123456"
+##################################
+# Various User Groups
+
+class ExamAdminGroup:
+    LOGIN_NAME = "Exam Admin"
+    GROUP_NAME = "Exam Admins"
+    PASSWORD = "123abc"
+
+    def __str__(self) -> str:
+        return self.GROUP_NAME
+
+class TeacherGroup:
+    LOGIN_NAME = "Teacher"
+    GROUP_NAME = "Teachers"
+    PASSWORD = "123456"
+
+    def __str__(self) -> str:
+        return self.GROUP_NAME
+
 # Mapping of Group to Permissions
 # Permissions are searched for using `icontains` lookup, 
-# so `mark` will catch all of the add, view, delete, and change perms
 GROUPS = {
-    TEACHERS_GROUP_NAME: ["view user", 
-                          "add exam", "change exam", "view exam", 
-                          "mark", "result",
-                          "add student", "change student", "view student",
-                          "view teacher"],
+    ExamAdminGroup.GROUP_NAME: [
+        "students.add_student",
+        "students.change_student",
+        "students.view_student",
+        "students.delete_student",
+
+        "students.add_teacher",
+        "students.view_teacher",
+
+        "exam.add_exam",
+        "exam.change_exam",
+        "exam.view_exam",
+        "exam.delete_exam",
+
+        "exam.add_result",
+        "exam.change_result",
+        "exam.view_result",
+        "exam.delete_result",
+
+        "exam.add_marks",
+        "exam.change_marks",
+        "exam.view_marks",
+        "exam.delete_marks",
+    ],
+    TeacherGroup.GROUP_NAME: [
+        "students.view_student",
+        "students.view_teacher",
+
+        "exam.add_exam",
+        "exam.change_exam",
+        "exam.view_exam",
+
+        "exam.add_result",
+        "exam.change_result",
+        "exam.view_result",
+
+        "exam.add_marks",
+        "exam.change_marks",
+        "exam.view_marks",
+    ],
 }

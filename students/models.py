@@ -1,11 +1,8 @@
 from django.db import models
-from django.db.models.signals import post_save
-
-from django.contrib.auth.models import User, Group, Permission
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
 
 from .constants import CLASSES, CLASSES_NUMBER_MAP, SUBJECTS_OPTIONAL_OUT_OF
-from .constants import TEACHERS_GROUP_NAME, TEACHER_USER_DEFAULT_PASSWORD, GROUPS
 
 from exam.constants import SUBJECTS, CLASS_SUBJECTS
 
@@ -132,44 +129,19 @@ class Student(models.Model):
         return ls
 
 class Teacher(models.Model):
-    teacher_name = models.CharField("Teacher's Name", max_length=30)
-    user_name = models.CharField("User Name", max_length=150, help_text="Enter an username that you will use for loging in.")
+    teacher_name = models.CharField("Teacher's Name", max_length=30, null=False)
+    user_name = models.CharField("User Name", max_length=150, help_text="Enter an username that you will use for logging in.", unique=True)
     # password = models.("Password", )
 
-    user = models.OneToOneField(to=User, on_delete=models.CASCADE, editable=False)
-    
-    dob = models.DateField("Date of Birth", blank=False, null=False)
-    doj = models.DateField("Date of Joining", blank=False, null=False)
-    salary = models.DecimalField("Salary (in rupees)", decimal_places=2, max_digits=10, blank=False, null=False)
+    user = models.OneToOneField(to=User, on_delete=models.CASCADE, editable=False, null=True)
 
-    # subject = models.CharField("Subject", max_length=20, blank=True, null=True, choices=SUBJECTS)
-    subject = models.ForeignKey(to="exam.Subject", on_delete=models.CASCADE, verbose_name="Subject", related_name='subject_teachers')
-    # teacher_of_class = models.CharField(verbose_name="Class Tecaher Of", max_length=4, blank=True, null=True, choices=Class.CLASSES)
+    salary = models.DecimalField("Salary (in rupees)", decimal_places=2, max_digits=10, blank=False, null=False)
+    subject = models.ForeignKey(to="exam.Subject", on_delete=models.CASCADE, verbose_name="Subject", related_name='subject_teachers', null=False, blank=False)
     teacher_of_class = models.OneToOneField(to=Class, on_delete=models.CASCADE, verbose_name="Class Teacher Of", related_name='class_teacher', blank=True, null=True)
 
     def __str__(self) -> str:
         return f"{self.teacher_name}"
-
-    def save(self, *args, **kwargs):
-        if not User.objects.filter(username=self.user_name).exists():
-            self.user = User.objects.create_user(username=self.user_name, password=TEACHER_USER_DEFAULT_PASSWORD, is_staff=True)
-            teachers_gp, created = Group.objects.get_or_create(name=TEACHERS_GROUP_NAME)
-            self.user.groups.add(teachers_gp)
-
-            # if the Group was created right now, it won't have permissions (django is not that smart!)
-            # so we need to add permissions to it...
-            if created:
-                for perm in GROUPS[TEACHERS_GROUP_NAME]:
-                    dj_perms = Permission.objects.filter(name__icontains=perm)
-                    for each_perm in dj_perms:
-                        teachers_gp.permissions.add(each_perm)
-        else:
-            # TODO: Somehow show error to user that username already exists,
-            # probably before clicking the save button in admin site
-            return None
-
-        super().save(*args, **kwargs)
-
+        
     def delete(self, *args, **kwargs):
         # TODO: this sometimes works and sometimes not..
         # This does works when the teacher is deleted from the change page

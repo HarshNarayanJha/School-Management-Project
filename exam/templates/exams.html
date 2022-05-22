@@ -49,20 +49,21 @@
                         <input class="form-control" type="text" name="exams_filter_session" id="exams_filter_session" value="{{ request.GET.exams_filter_session }}" pattern="20[0-9]{2}-20[0-9]{2}" maxlength="9">
                     </div>
                 </div>
-
-                <div class="d-flex flex-lg-row justify-content-start">
-                    <div class="form-group form-inline w-200 mr-10">
-                      <label for="exams_filter_cls">Filter by Class:</label>
-                      <select class="form-control" name="exams_filter_cls" id="exams_filter_cls">
-                      </select>
+                
+                {% if not request.user.is_class_teacher %}
+                    <div class="d-flex flex-lg-row justify-content-start">
+                        <div class="form-group form-inline w-200 mr-10">
+                            <label for="exams_filter_cls">Filter by Class:</label>
+                            <select class="form-control" name="exams_filter_cls" id="exams_filter_cls">
+                            </select>
+                        </div>
+                        <div class="form-group form-inline w-200">
+                            <label for="examts_filter_section">Filter by Section:</label>
+                            <select class="form-control" name="exams_filter_section" id="exams_filter_section">
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group form-inline w-200">
-                      <label for="examts_filter_section">Filter by Section:</label>
-                      <select class="form-control" name="exams_filter_section" id="exams_filter_section">
-                      </select>
-                    </div>
-                  </div>
-
+                {% endif %}
                 <input type="hidden" name="is_filter" id="is_filter">
 
                 <input type="submit" value="Find/Filter!" class="btn btn-success">
@@ -203,6 +204,8 @@
     exam_types = {{ exam_types|safe }}
     classes = {{ classes|safe }}
     sections: dict[str, list[str]] = {{ sections|safe }}
+    
+    user_is_cls_teacher = {{ request.user.is_class_teacher }}
 </script>
 <script type="text/python3" src="{% static 'py/exam_filter.py' %}"></script>
 {% endblock scripts %}

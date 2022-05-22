@@ -11,6 +11,11 @@
         <p class="card-title font-size-24">Edit details for Student <a href="{% url 'students:student-detail' uid=stu.uid %}" class="text-primary">{{ stu.student_name }}</a></p>
         <hr class="dropdown-divider mb-10" />
 
+        <div class="alert alert-danger">
+            <h4 class="alert-heading">ALERT!!!</h4>
+            Not Working right now!!!
+        </div>
+
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.extra_tags }} mb-10 animated fast shake" role="alert">
@@ -94,8 +99,12 @@
                     </div>
                     <div class="form-group form-inline">
                         <label for="cls" class="required">Class: </label>
-                        <!-- <input class="form-control" type="text" name="cls" id="cls" value="{{ stu.cls }}"> -->
                         <select class="form-control" name="cls" id="cls" required>
+                        </select>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="section" class="required">Section: </label>
+                        <select class="form-control" name="section" id="section" required>
                         </select>
                     </div>
                     <div class="form-group form-inline">
@@ -105,7 +114,7 @@
                 </div>
             </div>
             <div class="btn-group-vertical d-flex">
-                <button type="submit" class="btn btn-success btn-lg btn-block text-monospace">Update Details !</button>
+                <button type="submit" class="btn btn-success btn-lg btn-block text-monospace disabled" disabled>Update Details !</button>
                 <button type="reset" class="btn btn-danger align-self-end w-150 mt-20">Reset</button>
             </div>
         </form>
@@ -126,7 +135,8 @@
     gender = "{{ stu.gender }}"
     admission_category = "{{ stu.admission_category }}"
     social_category = "{{ stu.social_category }}"
-    cls = "{{ stu.cls }}"
+    cls = "{{ stu.cls.cls }}"
+    section = "{{ stu.cls.section }}"
 </script>
 
 <script type="text/python" src="{% static 'py/student_edit_page.py' %}" >

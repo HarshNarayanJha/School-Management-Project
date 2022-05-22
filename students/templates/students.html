@@ -75,6 +75,7 @@
               </div>
             </div>
             
+            {% if not request.user.is_class_teacher %}
             <div class="d-flex flex-lg-row justify-content-start">
 
               <div class="form-group form-inline w-200 mr-10">
@@ -88,8 +89,8 @@
                 <select class="form-control" name="students_filter_section" id="students_filter_section">
                 </select>
               </div>
-
             </div>
+            {% endif %}
 
             <div class="form-group form-inline w-200">
               <label for="students_filter_gender">Filter by Gender:</label>
@@ -264,6 +265,8 @@
   classes = {{ classes|safe }}
   sections = {{ sections|safe }}
   genders = {{ genders|safe }}
+
+  user_is_cls_teacher = {{ request.user.is_class_teacher }}
 </script>
 <script type="text/python" src="{% static 'py/students_filter.py' %}"></script>
 {% endblock scripts %}

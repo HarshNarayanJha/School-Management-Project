@@ -18,6 +18,8 @@ class Exam(models.Model):
     session = models.CharField("Exam Session", max_length=10, validators=[session_regex], help_text="Session of the exam. like 2021-2022")
     cls = models.ForeignKey(to=Class, verbose_name="Class", on_delete=models.CASCADE, blank=False, null=False, help_text="The class of which the exam is held. This will be pre-filled with your class if you are a class teacher.")
 
+    edited_by_class_teacher = models.BooleanField("Edited by Class Teacher", default=False, editable=False)
+
     objects = ExamManager()
 
     def __str__(self) -> str:
@@ -71,12 +73,3 @@ class Subject(models.Model):
         if self.subject_name in dict(SUBJECTS):
             return dict(SUBJECTS)[self.subject_name]
         else: return self.subject_name
-
-@receiver(post_save, sender=Student)
-def student_created(sender, instance: Student, created, **kwargs):
-    if created:
-        exams = Exam.objects.filter(cls=instance.cls)
-        for exam in exams:
-            result: Result = exam.result_set.create(student=instance)
-            for subject in instance.cls.cls_subjects.all():
-                mark: Marks = result.marks_set.create(subject=subject)

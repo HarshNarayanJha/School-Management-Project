@@ -1,12 +1,14 @@
 import random
 from django.shortcuts import redirect, render
-from django.http import Http404, HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseNotFound, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
+from django.contrib import auth
 from django.contrib import messages
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required, permission_required
 
 import uuid
 import pandas as pd
@@ -16,10 +18,14 @@ from exam.models import Subject
 from exam.constants import SUBJECTS, CLASS_SUBJECTS
 
 from .constants import CLASSES, CLASSES_NUMBER_MAP, SUBJECTS_OPTIONAL_OUT_OF
+from .constants import TeacherGroup, ExamAdminGroup
+
+from school_management import settings
 
 from .utils import get_invalid_value_message, get_create_success_message, get_roll_warning, get_uid_warning,\
                     get_update_success_message, get_birthdays, format_students_data, prepare_dark_mode
 
+@login_required
 def home(request: HttpRequest):
 
     context = {
@@ -29,12 +35,62 @@ def home(request: HttpRequest):
     context = prepare_dark_mode(request, context)
     return render(request, 'students_home.html', context=context)
 
+def login(request: HttpRequest):
+    if request.user.is_authenticated:
+        return redirect('students:home')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        login_as = request.POST.get('login-as')
+
+        if (login_as == TeacherGroup.LOGIN_NAME):
+            teacher = Teacher.objects.filter(user__username=username)
+            if not teacher.exists():
+                messages.warning(request, f"No Teacher with username {username} was found. Please check that you are logging in with correct Login Type and the username and password are correct.", extra_tags='danger')
+                return redirect('students:login')
+
+            user = teacher[0].user
+            _user = auth.authenticate(username=username, password=password)
+            if not user == _user:
+                messages.warning(request, f"The username or the password is incorrect. Try again", extra_tags='danger')
+                return redirect('students:login')
+
+            auth.login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
+
+        elif (login_as == ExamAdminGroup.LOGIN_NAME):
+            # Handle ExamAdmin Login....
+            messages.info(request, f"logging in ExamAdmin {username} Not implemented", extra_tags='primary')
+        else:
+            messages.error(f"Wrong Login As {login_as}", extra_tags='danger')
+            return redirect('students:login')
+
+        return redirect('students:home')
+
+    context = {
+        'login_as_types': [
+            TeacherGroup.LOGIN_NAME,
+            ExamAdminGroup.LOGIN_NAME,
+        ]
+    }
+
+    context = prepare_dark_mode(request, context)
+    return render(request, 'auth/login.html', context=context)
+
+@login_required
+def logout(request: HttpRequest):
+    auth.logout(request)
+    return redirect('students:home')
+
+@login_required
 def debug(request: HttpRequest):
     context = {}
 
     context = prepare_dark_mode(request, context)
     return render(request, 'utils/debug.html', context=context)
 
+@login_required
+@permission_required('exam.add_subject', raise_exception=True)
 def debug_create_subjects(request: HttpRequest):
     subject_objs = []
     for subject in Subject.SUBJECTS:
@@ -45,6 +101,8 @@ def debug_create_subjects(request: HttpRequest):
 
     return redirect('students:debug')
 
+@login_required
+@permission_required('students.add_class', raise_exception=True)
 def debug_create_classes(request: HttpRequest):
     cls_objs = []
     for cls in Class.CLASSES:
@@ -69,10 +127,14 @@ def debug_create_classes(request: HttpRequest):
     
     return redirect('students:debug')
 
+@login_required
+@permission_required('exam.delete_student', raise_exception=True)
 def debug_delete_students(request: HttpRequest):
     Student.objects.all().delete()
     return redirect("students:debug")
 
+@login_required
+@permission_required('students.view_student', raise_exception=True)
 def students(request: HttpRequest):
 
     def create_paginator(all_students, page, per_page=10):
@@ -101,6 +163,17 @@ def students(request: HttpRequest):
     students_filter_section = request.GET.get('students_filter_section', "").strip()
     students_filter_gender = request.GET.get('students_filter_gender', "").strip()
 
+    initial_all_students = Student.objects.all()
+    if request.user.is_class_teacher():
+        initial_all_students = Student.objects.filter(cls__cls=request.user.teacher.teacher_of_class.cls,
+                                                        cls__section=request.user.teacher.teacher_of_class.section)
+
+        if (students_filter_cls and students_filter_cls != request.user.teacher.teacher_of_class.cls) \
+            or students_filter_section and students_filter_section != request.user.teacher.teacher_of_class.section:
+
+            msg = f"You are not authorised to view the Students of class {students_filter_cls} and section {students_filter_section}"
+            return HttpResponseForbidden(msg)
+
     if (students_filter_name or students_filter_uid or \
         students_filter_phone or students_filter_aadhar or \
         students_filter_mother or students_filter_father or \
@@ -109,7 +182,7 @@ def students(request: HttpRequest):
         is_filter = True
 
         if students_filter_cls:
-            all_students = Student.objects.all().filter(
+            all_students = initial_all_students.filter(
                                     student_name__icontains=students_filter_name,
                                     uid__icontains=students_filter_uid,
                                     phone_number__icontains=students_filter_phone,
@@ -118,10 +191,10 @@ def students(request: HttpRequest):
                                     fathers_name__icontains=students_filter_father,
                                     cls__cls=students_filter_cls,
                                     cls__section__icontains=students_filter_section,
-                                    gender__icontains=students_filter_gender).order_by('roll')
+                                    gender__icontains=students_filter_gender)
 
         else:
-            all_students = Student.objects.all().filter(
+            all_students = initial_all_students.filter(
                                     student_name__icontains=students_filter_name,
                                     uid__icontains=students_filter_uid,
                                     phone_number__icontains=students_filter_phone,
@@ -129,10 +202,10 @@ def students(request: HttpRequest):
                                     mothers_name__icontains=students_filter_mother,
                                     fathers_name__icontains=students_filter_father,
                                     cls__section__icontains=students_filter_section,
-                                    gender__icontains=students_filter_gender).order_by('cls', 'cls__section', 'roll')
+                                    gender__icontains=students_filter_gender)
     else:
         is_filter = False
-        all_students = Student.objects.all().order_by('cls', 'roll')
+        all_students = initial_all_students
 
     paginator, students = create_paginator(all_students, page, students_per_page)
 
@@ -144,8 +217,9 @@ def students(request: HttpRequest):
     pagination_get_parameters += f"&students_filter_aadhar={request.GET.get('students_filter_aadhar', '')}"
     pagination_get_parameters += f"&students_filter_mother={request.GET.get('students_filter_mother', '')}"
     pagination_get_parameters += f"&students_filter_father={request.GET.get('students_filter_father', '')}"
-    pagination_get_parameters += f"&students_filter_cls={request.GET.get('students_filter_cls', '')}"
-    pagination_get_parameters += f"&students_filter_section={request.GET.get('students_filter_section', '')}"
+    if not request.user.is_class_teacher:
+        pagination_get_parameters += f"&students_filter_cls={request.GET.get('students_filter_cls', '')}"
+        pagination_get_parameters += f"&students_filter_section={request.GET.get('students_filter_section', '')}"
     pagination_get_parameters += f"&students_filter_gender={request.GET.get('students_filter_gender', '')}"
     pagination_get_parameters += f"&is_filter={bool(request.GET.get('is_filter', False))}"
 
@@ -163,10 +237,12 @@ def students(request: HttpRequest):
     context = prepare_dark_mode(request, context)
     return render(request, 'students.html', context=context)
 
+@login_required
+@permission_required('students.add_student', raise_exception=True)
 def student_add(request: HttpRequest):
 
     if request.method == "POST":
-        _cls, _cls_created = Class.objects.get_or_create(cls=request.POST.get('cls'))
+        _cls, _cls_created = Class.objects.get_or_create(cls=request.POST.get('cls'), section=request.POST.get('section'))
         same_cls_roll = Student.objects.filter(cls=_cls).filter(roll=request.POST.get('roll'))
         same_uid = Student.objects.filter(uid=request.POST.get('uid'))
 
@@ -204,16 +280,21 @@ def student_add(request: HttpRequest):
         'genders': list(Student.GENDERS),
         'admission_categories': list(Student.ADMISSION_CATEGORIES),
         'social_categories': list(Student.SOCIAL_CATEGORIES),
-        'classes': CLASSES
+        'classes': Class.get_classwise_sections()
     }
 
     context = prepare_dark_mode(request, context)
     return render(request, 'student_add.html', context=context)
 
+@login_required
+@permission_required('students.view_student', raise_exception=True)
 def student_detail(request: HttpRequest, uid: str):
 
     try:
         stu: Student = Student.objects.get(uid=uid)
+        if request.user.is_class_teacher():
+            if stu.cls != request.user.teacher.teacher_of_class:
+                return HttpResponseForbidden("This student is not of your class")
     except ObjectDoesNotExist:
         context = {
             'message_404': f'Student with UID <code class="code font-size-18 text-secondary">{uid}</code> was <span class="text-danger">not found</span>!'
@@ -230,11 +311,13 @@ def student_detail(request: HttpRequest, uid: str):
     context = prepare_dark_mode(request, context)
     return render(request, 'student_detail.html', context=context)
 
+@login_required
+@permission_required('students.change_student', raise_exception=True)
 def student_edit(request: HttpRequest, uid: str):
     stu: Student = Student.objects.get(uid=uid)
 
     if request.method == "POST":
-        _cls = Class.objects.get(cls=request.POST.get('cls'))
+        _cls = Class.objects.get(cls=request.POST.get('cls'), section=request.POST.get('section'))
         same_cls_roll = Student.objects.filter(cls=_cls).filter(roll=request.POST.get('roll'))
         same_cls_roll = same_cls_roll.exclude(uid=stu.uid)
 
@@ -260,12 +343,14 @@ def student_edit(request: HttpRequest, uid: str):
         'genders': list(Student.GENDERS),
         'admission_categories': list(Student.ADMISSION_CATEGORIES),
         'social_categories': dict(Student.SOCIAL_CATEGORIES),
-        'classes': CLASSES
+        'classes': Class.get_classwise_sections()
     }
 
     context = prepare_dark_mode(request, context)
     return render(request, 'student_edit.html', context=context)
 
+@login_required
+@permission_required('students.add_student', raise_exception=True)
 def students_upload(request: HttpRequest):
     
     new_students_list: list[Student] = []
@@ -390,12 +475,64 @@ def students_upload(request: HttpRequest):
     context = prepare_dark_mode(request, context)
     return render(request, 'students_upload.html', context=context)
 
-# Teachers Area! No Students allowed!
+# Teachers Area! No Student allowed!
 def teachers(request: HttpRequest):
     pass
 
+@login_required
+@permission_required('students.add_teacher', raise_exception=True)
 def teacher_add(request: HttpRequest):
-    pass
+
+    if request.method == "POST":
+        print(request.POST)
+        teacher_name = request.POST.get('teachers_name')
+        username = request.POST.get('username')
+        # password = request.POST.get('password')
+        # password_rep = request.POST.get('password_repeat')
+        salary = request.POST.get('salary')
+        subject = request.POST.get('subject')
+
+        is_class_teacher, cls = False, None
+        if request.POST.get('class_teacher_of'):
+            is_class_teacher = True
+            _cls, _section = request.POST.get('class_teacher_of').split("-")
+            cls, cls_created = Class.objects.get_or_create(cls=_cls, section=_section)
+            same_cls_teacher = Teacher.objects.filter(teacher_of_class=cls)
+
+        same_username = Teacher.objects.filter(user__username=username)
+
+        if same_username.exists():
+            # Sorry teacher, you have to pick another username...
+            messages.warning(request, f"Username {username} already used! Pick another username.", extra_tags='danger')
+            return redirect('students:teacher-add')
+
+        if is_class_teacher:
+            if same_cls_teacher.count() > 0:
+                # One Class(and section) may have only 1 (or 2 ???) Class Teachers....
+                messages.warning(request, f"Class Teacher of class {request.POST.get('cls_teacher_of')} already exists ({cls.class_teacher})", extra_tags="danger")
+                return redirect('students:teacher-add')
+
+        new_teacher: Teacher = Teacher.objects.create(
+                                teacher_name=teacher_name,
+                                user_name=username,
+                                salary=salary,
+                                subject=Subject.objects.get(subject_name=subject),
+                                teacher_of_class=cls
+                            )
+
+        messages.success(request, f"Teacher {new_teacher} successfully created", extra_tags='success')
+        return redirect("students:home")
+
+    context = {
+        'genders': list(Student.GENDERS),
+        'admission_categories': list(Student.ADMISSION_CATEGORIES),
+        'social_categories': list(Student.SOCIAL_CATEGORIES),
+        'subjects': SUBJECTS,
+        'classes': Class.get_classwise_sections()
+    }
+
+    context = prepare_dark_mode(request, context)
+    return render(request, 'teachers/teacher_add.html', context=context)
 
 def teacher_detail(request: HttpRequest):
     pass

@@ -13,6 +13,19 @@ urlpatterns = [
     path('students/upload/bulk/', views.students_upload, name='students-upload'),
 ]
 
+teacher_urlpatterns = [
+    path('teachers/', views.teachers, name='teachers'),
+    path('teachers/add/', views.teacher_add, name='teacher-add'),
+    path('teachers/<str:uid>/', views.teacher_detail, name='teacher-detail'),
+    path('teachers/<str:uid>/edit/', views.teacher_edit, name='teacher-edit'),
+    # path('teachers/upload/bulk/', views.students_upload, name='students-upload'),
+]
+
+auth_urlpatterns = [
+    path('accounts/login/', views.login, name='login'),
+    path('accounts/logout/', views.logout, name='logout'),
+]
+
 debug_urlpatterns = [
     path('debug/', views.debug, name='debug'),
     path('debug/create/subjects/', views.debug_create_subjects, name='debug-subjects-create'),
@@ -20,4 +33,6 @@ debug_urlpatterns = [
     path('debug/delete/students/', views.debug_delete_students, name='debug-students-delete'),
 ]
 
+urlpatterns += teacher_urlpatterns
+urlpatterns += auth_urlpatterns
 urlpatterns += debug_urlpatterns

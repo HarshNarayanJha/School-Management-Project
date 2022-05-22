@@ -1,6 +1,6 @@
-from browser import document, html
+from browser import document, html, bind
 from student_edit_options import (genders, admission_categories, social_categories, classes,
-                                gender, admission_category, social_category, cls)
+                                gender, admission_category, social_category, cls, section)
 
 # Append the gender options!
 for i in genders:
@@ -34,10 +34,27 @@ for i in social_categories.items():
 
 # Append the class options!
 for i in classes:
-    elem = html.OPTION(f"{i[1]}")
-    elem.attrs["id"] = f"cls_{i[0].lower()}"
-    elem.attrs["value"] = i[0]
+    elem = html.OPTION(f"{i}")
+    elem.attrs["id"] = f"cls_{i.lower()}"
+    elem.attrs["value"] = i
     document['cls'] <= elem
 
     # pre-select the correct option!
-    if i[0] == cls: elem.attrs["selected"] = ""
+    if i == cls: elem.attrs["selected"] = ""
+
+def set_up_sections(current_cls):
+    sects = classes[current_cls.upper()]
+    for i in sects:
+        elem = html.OPTION(f"{i}")
+        elem.attrs["id"] = f"section_{i.lower()}"
+        elem.attrs["value"] = i
+        document['section'] <= elem
+
+        if i == section: elem.attrs["selected"] = ""
+
+set_up_sections(document['cls'].value)
+
+@bind(document['cls'], 'change')
+def on_cls_change(ev):
+    document['section'].clear()
+    set_up_sections(ev.target.value)

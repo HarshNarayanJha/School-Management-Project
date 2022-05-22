@@ -59,21 +59,48 @@ class TeacherAdmin(admin.ModelAdmin):
                 objs.append(i.user)
                 deleted_objects.append(SafeString(f'User: <a href="/admin/auth/user/{i.user.id}/">{i.user}</a>'))
                 model_count['users'] = users_deleted
-                # perms_needed.add()
-
-        # print(objs, deleted_objects, model_count, perms_needed, protected)
 
         return (deleted_objects, model_count, perms_needed, protected)
 
 def is_class_teacher(user):
     """
-    Returns the class of which the currently logged in teacher is class teacher of
-    or None if he/she is not a class teacher
+    Returns if the User is a class_teacher or not
+    use `user.teacher.teacher_of_class` to access the class
     """
     if hasattr(user, "teacher"):
-        return user.teacher.teacher_of_class or None
+        return True if user.teacher.teacher_of_class else False
+    return False
+
+def user_type(user):
+    """
+    Returns the type of the user\n
+    One of `["Teacher", "ExamAdmin"...]` or `"Superuser"`
+    """
+    if user.is_superuser:
+        return "Superuser"
+    elif user.is_class_teacher():
+        return f"Class Teacher of {user.teacher.teacher_of_class}"
+    elif not user.is_class_teacher() and user.teacher:
+        return f"Teacher of {user.teacher.subject}"
+    else:
+        return "Unknown"
+
+def get_display_name(user):
+    """
+    Returns the appropriate name for the user_type
+    - For Teacher, `user.teacher.teacher_name`
+    - ...
+    - Anything else, `user.username`
+    """
+    if hasattr(user, "teacher"):
+        if user.teacher:
+            return user.teacher.teacher_name
+
+    return user.username
 
 User.add_to_class('is_class_teacher', is_class_teacher)
+User.add_to_class('user_type', user_type)
+User.add_to_class('get_display_name', get_display_name)
 
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Teacher, TeacherAdmin)

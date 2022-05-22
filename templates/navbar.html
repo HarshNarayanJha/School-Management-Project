@@ -4,21 +4,28 @@
     <span class="ion ion-android-menu"></span>
   </button>
   
-  <a href="{% url 'students:home' %}" class="navbar-brand">
-    School Management System
+  <!-- lg and above -->
+  <a href="{% url 'students:home' %}" class="navbar-brand d-none d-lg-inline">
+    School Management
+  </a>
+  <!-- mobile (font-size: 1.4rem) -->
+  <a href="{% url 'students:home' %}" class="navbar-brand d-lg-none d-inline font-size-14">
+    School Management
   </a>
   
   <a href="https://github.com/HarshNarayanJha/School-Management-Project" 
      class="navbar-text text-monospace text-decoration-none mt-5"
      target="_blank">
-     
     <kbd data-toggle="tooltip" data-placement="bottom" data-title="Star me on Github">v0.1 <span class="fab fa-github"></span></kbd>
   </a>
-  
+  {% if request.user.is_authenticated %}
+    <div class="navbar-content ml-auto d-none d-md-inline">
+      <span class="badge bg-very-dark-dm bg-white-lm text-white-dm font-size-16 font-weight-bold">
+        Welcome <span class="text-primary" data-toggle="tooltip" data-placement="bottom" data-title="Logged in as {{ request.user.user_type }}">{{ request.user.get_display_name }}</span>
+      </span>
+    </div>
+  {% endif %}
   <ul class="navbar-nav ml-auto d-none d-md-flex">
-    <li class="nav-item">
-      <a href="{% url 'students:home' %}" class="nav-link">Home</a>
-    </li>
     <li class="nav-item">
       <a href="{% url 'students:students' %}" class="nav-link">Students</a>
     </li>
@@ -28,13 +35,20 @@
 
     <div class="dropdown with-arrow">
       <button class="btn" data-toggle="dropdown" type="button" id="navbar-dropdown">
-        Menu
+        <i class="fa fa-user" aria-hidden="true"></i>&nbsp;
+        Account
         <i class="fa fa-angle-down" aria-hidden="true"></i>
       </button>
       <div class="dropdown-menu dropdown-menu-right w-200" aria-labelledby="navbar-dropdown">
-        <a href="#" class="dropdown-item">Link 3</a>
-        <a href="#" class="dropdown-item">Link 4</a>
-        <div class="dropdown-divider"></div>
+        {% if request.user.is_authenticated %}
+          <a href="#" class="dropdown-item">{{ request.user.username }}</a>
+          <a href="{% url 'students:logout' %}" class="dropdown-item bg-danger text-white rounded">Logout</a>
+        {% else %}
+          <a href="{% url 'students:login' %}" class="dropdown-item bg-primary text-white rounded">Login</a>
+        {% endif %}
+
+        <hr class="dropdown-divider"></hr>
+
         <button class="btn btn-block" onclick="halfmoon.toggleDarkMode()">
           <span class="hidden-dm"><i class="ion ion-ios-lightbulb-outline"></i>&nbsp;Dark Mode</span>
           <span class="hidden-lm"><i class="ion ion-ios-lightbulb text-secondary"></i>&nbsp;Light Mode</span>
@@ -46,19 +60,32 @@
   <div class="navbar-content d-md-none ml-auto mr-10">
     <div class="dropdown with-arrow">
       <button class="btn" data-toggle="dropdown" type="button" id="navbar-dropdown">
+        <i class="ion ion-android-menu" aria-hidden="true"></i>&nbsp;
         Menu
         <i class="fa fa-angle-down" aria-hidden="true"></i>
       </button>
       <div class="dropdown-menu dropdown-menu-right w-200" aria-labelledby="navbar-dropdown">
-        <a href="{% url 'students:home' %}" class="dropdown-item">Home</a>
         <a href="{% url 'students:students' %}" class="dropdown-item">Students</a>
         <a href="{% url 'exam:home' %}" class="dropdown-item">Exam</a>
-        <div class="navbar-divider"></div>
+
+        <hr class="dropdown-divider" />
+        {% if request.user.is_authenticated %}
+        <a href="#" class="dropdown-item badge bg-very-dark-dm bg-white-lm text-white-dm font-size-14 font-weight-bold d-flex justify-content-around">
+          Welcome <span class="text-primary" data-toggle="tooltip" data-placement="bottom" data-title="Logged in as {{ request.user.user_type }}">{{ request.user.get_display_name }}</span>
+        </a>
+        {% endif %}
+        {% if request.user.is_authenticated %}
+          <a href="#" class="dropdown-item">{{ request.user.username }}</a>
+          <a href="{% url 'students:logout' %}" class="dropdown-item bg-danger text-white rounded">Logout</a>
+        {% else %}
+          <a href="{% url 'students:login' %}" class="dropdown-item bg-primary text-white rounded">Login</a>
+        {% endif %}
+
+        <hr class="dropdown-divider" />
         <button class="btn btn-block" onclick="halfmoon.toggleDarkMode()">
           <span class="hidden-dm"><i class="ion ion-ios-lightbulb-outline"></i>&nbsp;Dark Mode</span>
           <span class="hidden-lm"><i class="ion ion-ios-lightbulb text-secondary"></i>&nbsp;Light Mode</span>
         </button>
-        <div class="dropdown-divider"></div>
       </div>
     </div>
   </div>

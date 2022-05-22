@@ -22,9 +22,10 @@
 
       <h5 class="sidebar-title"><a href="{% url 'students:home' %}" class="text-light-dm">Teachers</a></h5>
       <div class="sidebar-divider"></div>
-      <!-- <a href="{% url 'students:students' %}" class="sidebar-link">Teachers</a> -->
+      <a href="{% url 'students:teachers' %}" class="sidebar-link">Teachers</a>
       <a href="/admin/students/teacher/" class="sidebar-link">Teachers (Admin)</a>
-      <a href="/admin/students/teacher/add/" class="sidebar-link">Add Teacher</a>
+      <a href="{% url 'students:teacher-add' %}" class="sidebar-link">Add Teacher</a>
+      <a href="/admin/students/teacher/add/" class="sidebar-link">Add Teacher (Admin)</a>
 
       <br />
 

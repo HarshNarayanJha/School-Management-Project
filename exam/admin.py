@@ -26,6 +26,24 @@ class MarksInline(nested_admin.NestedTabularInline):
 
         return super().formfield_for_choice_field(db_field, request, **kwargs)
 
+    def has_change_permission(self, request, obj: Exam=None):
+        if request.user.is_class_teacher():
+            if obj is not None:
+                if hasattr(obj, "exam"):
+                    if obj.exam.edited_by_class_teacher:
+                        return False
+                    else:
+                        return True
+                elif hasattr(obj, "result"):
+                    if obj.result.exam.edited_by_class_teacher:
+                        return False
+                    else:
+                        return True
+            else:
+                return False
+        else:
+            return True
+
 class ResultsInline(nested_admin.NestedTabularInline):
     model = Result
     formset = ResultsInlineFormSet
@@ -97,6 +115,24 @@ class ResultsInline(nested_admin.NestedTabularInline):
 
         return total
 
+    def has_change_permission(self, request, obj: Exam=None):
+        if request.user.is_class_teacher():
+            if obj is not None:
+                if hasattr(obj, "exam"):
+                    if obj.exam.edited_by_class_teacher:
+                        return False
+                    else:
+                        return True
+                else:
+                    if obj.edited_by_class_teacher:
+                        return False
+                    else:
+                        return True
+            else:
+                return False
+        else:
+            return True
+
 class ExamAdmin(nested_admin.NestedModelAdmin):
     list_display = ("__str__", "session", "cls")
     list_filter = ("exam_name", "session", "cls")
@@ -106,10 +142,19 @@ class ExamAdmin(nested_admin.NestedModelAdmin):
         ("Exam Info", {'fields': ("exam_name", "session", "cls")}),
     )
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if not request.user.is_class_teacher():
+            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+            
+        cls = request.user.teacher.teacher_of_class
+        if db_field.name == "cls":
+            kwargs["queryset"] = Class.objects.filter(cls=cls.cls, section=cls.section)
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     def get_changeform_initial_data(self, request):
-        cls = request.user.is_class_teacher()
-        if cls:
-            return {'cls': cls}
+        if request.user.is_class_teacher():
+            return {'cls': request.user.teacher.teacher_of_class}
 
     inlines = [ResultsInline]
 
@@ -119,6 +164,18 @@ class ExamAdmin(nested_admin.NestedModelAdmin):
             return []
         
         return super().get_inline_instances(request, obj)
+
+    def has_change_permission(self, request, obj: Exam=None):
+        if request.user.is_class_teacher():
+            if obj is not None:
+                if obj.edited_by_class_teacher:
+                    return False
+                else:
+                    return True
+            else:
+                return False
+        else:
+            return True
 
 admin.site.register(Exam, ExamAdmin)
 admin.site.register(Subject)
