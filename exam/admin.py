@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.http import HttpRequest
 
 from students.models import Student, Class
-from .models import Exam, Result, Marks, Subject
+from .models import Exam, Result, Marks, Subject, ExamAdmin
 from .forms import ResultsInlineFormSet
 import nested_admin
 
@@ -133,7 +133,7 @@ class ResultsInline(nested_admin.NestedTabularInline):
         else:
             return True
 
-class ExamAdmin(nested_admin.NestedModelAdmin):
+class ExamAdmin_(nested_admin.NestedModelAdmin):
     list_display = ("__str__", "session", "cls")
     list_filter = ("exam_name", "session", "cls")
     search_fields = ("exam_name", "session", "cls")
@@ -166,19 +166,17 @@ class ExamAdmin(nested_admin.NestedModelAdmin):
         return super().get_inline_instances(request, obj)
 
     def has_change_permission(self, request, obj: Exam=None):
-        if request.user.is_class_teacher():
-            if obj is not None:
-                if obj.edited_by_class_teacher:
-                    return False
-                else:
-                    return True
-            else:
-                return False
-        else:
-            return True
+        if not request.user.is_class_teacher(): return True
+        if obj is None: return False
+        if obj.edited_by_class_teacher: return False
 
-admin.site.register(Exam, ExamAdmin)
+        return True
+
+# This is the Admin class of the class Exam
+admin.site.register(Exam, ExamAdmin_)
 admin.site.register(Subject)
+# This is the 'user/real' ExamAdmin
+admin.site.register(ExamAdmin)
 # These aren't registered in production
 # Can be registered for debugging...
 # admin.site.register(Result)

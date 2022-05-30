@@ -14,7 +14,7 @@ import uuid
 import pandas as pd
 
 from .models import Student, Teacher, Class
-from exam.models import Subject
+from exam.models import ExamAdmin, Subject
 from exam.constants import SUBJECTS, CLASS_SUBJECTS
 
 from .constants import CLASSES, CLASSES_NUMBER_MAP, SUBJECTS_OPTIONAL_OUT_OF
@@ -60,7 +60,18 @@ def login(request: HttpRequest):
 
         elif (login_as == ExamAdminGroup.LOGIN_NAME):
             # Handle ExamAdmin Login....
-            messages.info(request, f"logging in ExamAdmin {username} Not implemented", extra_tags='primary')
+            exam_admin = ExamAdmin.objects.filter(user__username=username)
+            if not exam_admin.exists():
+                messages.warning(request, f"No ExamAdmin with username {username} was found. Please check that you are logging in with correct Login Type and the username and password are correct.", extra_tags='danger')
+                return redirect('students:login')
+
+            user = exam_admin[0].user
+            _user = auth.authenticate(username=username, password=password)
+            if not user == _user:
+                messages.warning(request, f"The username or the password is incorrect. Try again", extra_tags='danger')
+                return redirect('students:login')
+
+            auth.login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
         else:
             messages.error(f"Wrong Login As {login_as}", extra_tags='danger')
             return redirect('students:login')
@@ -207,7 +218,7 @@ def students(request: HttpRequest):
         is_filter = False
         all_students = initial_all_students
 
-    paginator, students = create_paginator(all_students, page, students_per_page)
+    paginator, page_students = create_paginator(all_students, page, students_per_page)
 
     # URI's GET request filter params
     pagination_get_parameters = f"&students_per_page={request.GET.get('students_per_page', '')}"
@@ -224,9 +235,9 @@ def students(request: HttpRequest):
     pagination_get_parameters += f"&is_filter={bool(request.GET.get('is_filter', False))}"
 
     context = {
-        'students': students,
+        'students': page_students,
         'num_all_students': len(all_students),
-        'num_students': len(students),
+        'num_students': len(page_students),
         'is_filter': is_filter,
         'classes': CLASSES or [],
         'sections': Class.get_classwise_sections(),
@@ -476,8 +487,16 @@ def students_upload(request: HttpRequest):
     return render(request, 'students_upload.html', context=context)
 
 # Teachers Area! No Student allowed!
+@permission_required('students.view_teacher', raise_exception=True)
 def teachers(request: HttpRequest):
-    pass
+    all_teachers = Teacher.objects.all()
+
+    context = {
+        'teachers': all_teachers,
+    }
+
+    context = prepare_dark_mode(request, context)
+    return render(request, 'teachers/teachers.html', context=context)
 
 @login_required
 @permission_required('students.add_teacher', raise_exception=True)
@@ -534,8 +553,8 @@ def teacher_add(request: HttpRequest):
     context = prepare_dark_mode(request, context)
     return render(request, 'teachers/teacher_add.html', context=context)
 
-def teacher_detail(request: HttpRequest):
+def teacher_detail(request: HttpRequest, tid: int):
     pass
 
-def teacher_edit(request: HttpRequest):
+def teacher_edit(request: HttpRequest, tid: int):
     pass

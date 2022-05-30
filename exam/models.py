@@ -1,6 +1,7 @@
 import django
 from django.db import models
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -34,7 +35,7 @@ class ResultManager(models.Manager):
 
 class Result(models.Model):
     exam = models.ForeignKey(to=Exam, null=True, on_delete=models.CASCADE)
-    student = models.ForeignKey(to=Student, on_delete=models.CASCADE)#, limit_choices_to={'cls': exam.related_model.cls})
+    student = models.ForeignKey(to=Student, on_delete=models.CASCADE)
 
     objects = ResultManager()
 
@@ -73,3 +74,25 @@ class Subject(models.Model):
         if self.subject_name in dict(SUBJECTS):
             return dict(SUBJECTS)[self.subject_name]
         else: return self.subject_name
+
+class ExamAdmin(models.Model):
+    class Meta:
+        verbose_name = "Exam Admin"
+        
+    admin_name = models.CharField("Exam Admin's Name", max_length=30, null=False)
+    user_name = models.CharField("User Name", max_length=150, help_text="Enter an username that you will use for logging in.", unique=True)
+    # password = models.("Password", )
+
+    user = models.OneToOneField(to=User, on_delete=models.CASCADE, editable=False, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.admin_name}"
+        
+    def delete(self, *args, **kwargs):
+        # TODO: this sometimes works and sometimes not..
+        # This does works when the teacher is deleted from the change page
+        # But not when from the checkbox and action `delete selected` on the list page.
+        user = User.objects.get(username=self.user_name)
+        user.delete()
+        
+        return super().delete(*args, **kwargs)

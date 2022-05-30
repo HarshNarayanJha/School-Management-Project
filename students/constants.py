@@ -25,7 +25,7 @@ SUBJECTS_OPTIONAL_OUT_OF: "dict[str, tuple[tuple[str]]]" = {
 class ExamAdminGroup:
     LOGIN_NAME = "Exam Admin"
     GROUP_NAME = "Exam Admins"
-    PASSWORD = "123abc"
+    PASSWORD = "123456"
 
     def __str__(self) -> str:
         return self.GROUP_NAME
@@ -39,7 +39,7 @@ class TeacherGroup:
         return self.GROUP_NAME
 
 # Mapping of Group to Permissions
-# Permissions are searched for using `icontains` lookup, 
+# Permissions are in form <app_name>.{add,change,view,delete}_<model_name>
 GROUPS = {
     ExamAdminGroup.GROUP_NAME: [
         "students.add_student",

@@ -16,8 +16,8 @@ urlpatterns = [
 teacher_urlpatterns = [
     path('teachers/', views.teachers, name='teachers'),
     path('teachers/add/', views.teacher_add, name='teacher-add'),
-    path('teachers/<str:uid>/', views.teacher_detail, name='teacher-detail'),
-    path('teachers/<str:uid>/edit/', views.teacher_edit, name='teacher-edit'),
+    path('teachers/<int:tid>/', views.teacher_detail, name='teacher-detail'),
+    path('teachers/<int:tid>/edit/', views.teacher_edit, name='teacher-edit'),
     # path('teachers/upload/bulk/', views.students_upload, name='students-upload'),
 ]
 

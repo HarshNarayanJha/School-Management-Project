@@ -38,13 +38,15 @@ def all_exams(request: HttpRequest) -> Response:
             # weird method name ;) ??
             exm.move_to_end('url', last=False)
 
-            for res in exm['results']:
-                res['url'] = f"http://{request.get_host()}{'/api/v1/results/'}{res['id']}" + "/"
-                res.move_to_end('url', last=False)
+            del exm['results']
 
-                for mrk in res['marks']:
-                    mrk['url'] = f"http://{request.get_host()}{'/api/v1/marks/'}{mrk['id']}" + "/"
-                    mrk.move_to_end('url', last=False)
+            # for res in exm['results']:
+            #     res['url'] = f"http://{request.get_host()}{'/api/v1/results/'}{res['id']}" + "/"
+            #     res.move_to_end('url', last=False)
+
+            #     for mrk in res['marks']:
+            #         mrk['url'] = f"http://{request.get_host()}{'/api/v1/marks/'}{mrk['id']}" + "/"
+            #         mrk.move_to_end('url', last=False)
 
         data['exams'] = serializer.data
         return Response(data)
@@ -115,9 +117,11 @@ def all_results(request: HttpRequest) -> Response:
             # weird method name ;) ??
             res.move_to_end('url', last=False)
 
-            for mrk in res['marks']:
-                mrk['url'] = f"http://{request.get_host()}{'/api/v1/marks/'}{res['id']}" + "/"
-                mrk.move_to_end('url', last=False)
+            del res['marks']
+
+            # for mrk in res['marks']:
+            #     mrk['url'] = f"http://{request.get_host()}{'/api/v1/marks/'}{res['id']}" + "/"
+            #     mrk.move_to_end('url', last=False)
 
         data['results'] = serializer.data
         return Response(data)

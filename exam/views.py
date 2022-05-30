@@ -72,7 +72,7 @@ def exams(request: HttpRequest):
         is_filter = False
         all_exams = initial_all_exams
 
-    paginator, exams = create_paginator(all_exams, page, exams_per_page)
+    paginator, page_exams = create_paginator(all_exams, page, exams_per_page)
 
     # URI's GET request filter params
     pagination_get_parameters = f"&exams_per_page={request.GET.get('exams_per_page', '')}"
@@ -84,12 +84,12 @@ def exams(request: HttpRequest):
     pagination_get_parameters += f"&is_filter={bool(request.GET.get('is_filter', False))}"
 
     context = {
-        'exams': exams,
+        'exams': page_exams,
         'exam_types': list(EXAM_TYPES),
         'classes': list(CLASSES),
         'sections': Class.get_classwise_sections(),
         'num_all_exams': len(all_exams),
-        'num_exams': len(exams),
+        'num_exams': len(page_exams),
         'is_filter': is_filter,
         'pagination_get_parameters': pagination_get_parameters,        
     }
