@@ -5,11 +5,11 @@
   </button>
   
   <!-- lg and above -->
-  <a href="{% url 'students:home' %}" class="navbar-brand d-none d-lg-inline">
+  <a href="{% url 'core:home' %}" class="navbar-brand d-none d-lg-inline">
     School Management
   </a>
   <!-- mobile (font-size: 1.4rem) -->
-  <a href="{% url 'students:home' %}" class="navbar-brand d-lg-none d-inline font-size-14">
+  <a href="{% url 'core:home' %}" class="navbar-brand d-lg-none d-inline font-size-14">
     School Management
   </a>
   
@@ -30,21 +30,24 @@
       <a href="{% url 'students:students' %}" class="nav-link">Students</a>
     </li>
     <li class="nav-item">
-      <a href="{% url 'exam:home' %}" class="nav-link">Exam</a>
+      <a href="{% url 'exam:exams' %}" class="nav-link">Exam</a>
     </li>
 
     <div class="dropdown with-arrow">
       <button class="btn" data-toggle="dropdown" type="button" id="navbar-dropdown">
         <i class="fa fa-user" aria-hidden="true"></i>&nbsp;
-        Account
+        {% if request.user.is_authenticated %}
+          {{ request.user.username }}
+        {% else %}
+          Account
+        {% endif %}
         <i class="fa fa-angle-down" aria-hidden="true"></i>
       </button>
       <div class="dropdown-menu dropdown-menu-right w-200" aria-labelledby="navbar-dropdown">
         {% if request.user.is_authenticated %}
-          <a href="#" class="dropdown-item">{{ request.user.username }}</a>
-          <a href="{% url 'students:logout' %}" class="dropdown-item bg-danger text-white rounded">Logout</a>
+          <a href="{% url 'core:logout' %}" class="dropdown-item bg-danger text-white rounded">Logout</a>
         {% else %}
-          <a href="{% url 'students:login' %}" class="dropdown-item bg-primary text-white rounded">Login</a>
+          <a href="{% url 'core:login' %}" class="dropdown-item bg-primary text-white rounded">Login</a>
         {% endif %}
 
         <hr class="dropdown-divider"></hr>
@@ -66,7 +69,7 @@
       </button>
       <div class="dropdown-menu dropdown-menu-right w-200" aria-labelledby="navbar-dropdown">
         <a href="{% url 'students:students' %}" class="dropdown-item">Students</a>
-        <a href="{% url 'exam:home' %}" class="dropdown-item">Exam</a>
+        <a href="{% url 'exam:exams' %}" class="dropdown-item">Exam</a>
 
         <hr class="dropdown-divider" />
         {% if request.user.is_authenticated %}
@@ -76,9 +79,9 @@
         {% endif %}
         {% if request.user.is_authenticated %}
           <a href="#" class="dropdown-item">{{ request.user.username }}</a>
-          <a href="{% url 'students:logout' %}" class="dropdown-item bg-danger text-white rounded">Logout</a>
+          <a href="{% url 'core:logout' %}" class="dropdown-item bg-danger text-white rounded">Logout</a>
         {% else %}
-          <a href="{% url 'students:login' %}" class="dropdown-item bg-primary text-white rounded">Login</a>
+          <a href="{% url 'core:login' %}" class="dropdown-item bg-primary text-white rounded">Login</a>
         {% endif %}
 
         <hr class="dropdown-divider" />

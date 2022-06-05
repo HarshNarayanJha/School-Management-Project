@@ -1,7 +1,8 @@
 # exams serializers!
 
 from rest_framework import serializers
-from .models import EXAM_TYPES, Exam, Result, Marks, Subject
+from .models import Exam, Result, Marks
+from .constants import EXAM_TYPES
 
 class ExamSerializer(serializers.ModelSerializer):
 
@@ -64,19 +65,5 @@ class MarkSerializer(serializers.ModelSerializer):
         rep['subject'] = instance.subject.get_subject_name_display()
 
         rep.move_to_end('marks_ob')
-
-        return rep
-
-class SubjectSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Subject
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        del rep['subject_name']
-        rep['subject_code'] = instance.subject_name
-        rep['subject_name'] = instance.get_subject_name_display()
 
         return rep

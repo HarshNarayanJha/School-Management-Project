@@ -42,8 +42,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'guardian',
     'api',
+    'core',
     'students',
-    'exam'
+    'exam',
 ]
 
 MIDDLEWARE = [
@@ -143,6 +144,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1210
 
 ###############
 # API Realted

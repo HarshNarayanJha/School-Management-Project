@@ -3,9 +3,9 @@ from teacher_add_options import subjects, classes
 
 # Append the subjects options!
 for i in subjects:
-    elem = html.OPTION(f"{i[1]}")
-    elem.attrs["id"] = f"subject_{i[0].lower()}"
-    elem.attrs["value"] = i[0]
+    elem = html.OPTION(f"{subjects[i]}")
+    elem.attrs["id"] = f"subject_{i}"
+    elem.attrs["value"] = i
     document['subject'] <= elem
 
 cls_none = html.OPTION("-----")

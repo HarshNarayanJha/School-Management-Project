@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.http import HttpRequest
 
-from students.models import Student, Class
-from .models import Exam, Result, Marks, Subject, ExamAdmin
+from students.models import Student
+from core.models import Class
+from .models import Exam, Result, Marks
 from .forms import ResultsInlineFormSet
 import nested_admin
 
@@ -133,7 +134,7 @@ class ResultsInline(nested_admin.NestedTabularInline):
         else:
             return True
 
-class ExamAdmin_(nested_admin.NestedModelAdmin):
+class ExamAdmin(nested_admin.NestedModelAdmin):
     list_display = ("__str__", "session", "cls")
     list_filter = ("exam_name", "session", "cls")
     search_fields = ("exam_name", "session", "cls")
@@ -173,10 +174,7 @@ class ExamAdmin_(nested_admin.NestedModelAdmin):
         return True
 
 # This is the Admin class of the class Exam
-admin.site.register(Exam, ExamAdmin_)
-admin.site.register(Subject)
-# This is the 'user/real' ExamAdmin
-admin.site.register(ExamAdmin)
+admin.site.register(Exam, ExamAdmin)
 # These aren't registered in production
 # Can be registered for debugging...
 # admin.site.register(Result)

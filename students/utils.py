@@ -1,12 +1,15 @@
 import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
+
+from core.constants import CLASSES_NUMBER_MAP
 """
 Some utility functions with multiple usages
 """
 
 import datetime
-from students.models import Student, Class
+from students.models import Student
+from core.models import Class
 
 def get_invalid_value_message(value_name: str, value: str, line_no: int, uid: str, expected_vals: "list[str]") -> str:
     """
@@ -129,7 +132,7 @@ def format_students_data(data: pd.DataFrame) -> pd.DataFrame:
         if series.name == 'cls':
             cls_nums = []
             for x in series.values:
-                cls_nums.append(Class._CLASSES_NUMBER_MAP[x] if x in Class._CLASSES_NUMBER_MAP else Class._CLASSES_NUMBER_MAP[x.split(" - ")[0]])
+                cls_nums.append(CLASSES_NUMBER_MAP[x] if x in CLASSES_NUMBER_MAP else CLASSES_NUMBER_MAP[x.split(" - ")[0]])
 
             return pd.Series(cls_nums)
 

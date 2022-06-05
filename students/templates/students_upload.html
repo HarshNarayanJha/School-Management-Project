@@ -30,9 +30,7 @@
                 <hr class="sidebar-divider" />
                 {% for student in students_added %}
                     <div class="text-monospace">{{ forloop.counter }}. {{ student.student_name }} (Class: {{ student.cls }}, Roll: {{ student.roll }})</div>
-                    {% for sub in student.extra_subjects_opted.get_queryset.objects %}
-                        {{ sub }}
-                    {% endfor %}
+                    {{ student.optional_subjects_opted.get_queryset|unordered_list }}
                 {% endfor %}
             {% else %}
                 <p class="font-size-16 text-monospace text-danger">No Students were created</p>
@@ -46,6 +44,7 @@
             <hr class="sidebar-divider" />
             {% for student_not in students_not_added %}
                 <div class="text-monospace">{{ forloop.counter }}. {{ student_not.student_name }} (Class: {{ student_not.cls }}, Roll: {{ student_not.roll }})</div>
+                {{ student_not.optional_subjects_opted.get_queryset|unordered_list }}
             {% endfor %}
         </div>
     {% endif %}

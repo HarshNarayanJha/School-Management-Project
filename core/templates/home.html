@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    School Management | Home
+{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <h1 class="">Welcome to the School Management System</h1>
+    <br />
+    <div><a href="/admin">Go to Admin</a></div>
+
+    <div class="card">
+        <p class="text-monospace font-size-18 text-muted">
+        DONT READ, NOT SO IMPORTANT... <br><br>
+        Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+        Fuga ducimus vitae quod voluptatibus reprehenderit atque velit, ad aut tempora sunt?
+        <br />
+        Porro, praesentium veniam! Libero adipisci dolorum nam quos consequuntur esse corporis quidem officia cum molestias, debitis fugit saepe qui at.
+        Excepturi tempora, voluptatum sit quis maxime molestiae architecto ea impedit?
+        Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+        Fuga ducimus vitae quod voluptatibus reprehenderit atque velit, ad aut tempora sunt?
+        <br />
+        Porro, praesentium veniam! Libero adipisci dolorum nam quos consequuntur esse corporis quidem officia cum molestias, debitis fugit saepe qui at.
+        Excepturi tempora, voluptatum sit quis maxime molestiae architecto ea impedit?
+    </div>
+
+    <div class="card">
+        <h5 class="card-title">Dev Links</h5>
+        <div class="card-content">
+            <div><a href="{% url 'core:debug' %}">Debug</a></div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

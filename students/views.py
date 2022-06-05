@@ -5,24 +5,19 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
-from django.contrib import auth
 from django.contrib import messages
-from django.urls import reverse
 from django.contrib.auth.decorators import login_required, permission_required
 
 import uuid
 import pandas as pd
 
-from .models import Student, Teacher, Class
-from exam.models import ExamAdmin, Subject
-from exam.constants import SUBJECTS, CLASS_SUBJECTS
+from .models import Student
+from core.models import Class, Teacher, ExamAdmin, Subject
+from core.constants import CLASSES, SUBJECTS_OPTIONAL_OUT_OF, SUBJECTS
+from students.constants import ADMISSION_CATEGORIES, BLOOD_GROUPS, ADMISSION_FLAGS,\
+                GENDERS, MINORITIES, SOCIAL_CATEGORIES, STUDENT_STATUSES, YES_NO_CHOICES
 
-from .constants import CLASSES, CLASSES_NUMBER_MAP, SUBJECTS_OPTIONAL_OUT_OF
-from .constants import TeacherGroup, ExamAdminGroup
-
-from school_management import settings
-
-from .utils import get_invalid_value_message, get_create_success_message, get_roll_warning, get_uid_warning,\
+from .utils import get_create_success_message, get_roll_warning, get_uid_warning,\
                     get_update_success_message, get_birthdays, format_students_data, prepare_dark_mode
 
 @login_required
@@ -35,114 +30,11 @@ def home(request: HttpRequest):
     context = prepare_dark_mode(request, context)
     return render(request, 'students_home.html', context=context)
 
-def login(request: HttpRequest):
-    if request.user.is_authenticated:
-        return redirect('students:home')
-
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        login_as = request.POST.get('login-as')
-
-        if (login_as == TeacherGroup.LOGIN_NAME):
-            teacher = Teacher.objects.filter(user__username=username)
-            if not teacher.exists():
-                messages.warning(request, f"No Teacher with username {username} was found. Please check that you are logging in with correct Login Type and the username and password are correct.", extra_tags='danger')
-                return redirect('students:login')
-
-            user = teacher[0].user
-            _user = auth.authenticate(username=username, password=password)
-            if not user == _user:
-                messages.warning(request, f"The username or the password is incorrect. Try again", extra_tags='danger')
-                return redirect('students:login')
-
-            auth.login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
-
-        elif (login_as == ExamAdminGroup.LOGIN_NAME):
-            # Handle ExamAdmin Login....
-            exam_admin = ExamAdmin.objects.filter(user__username=username)
-            if not exam_admin.exists():
-                messages.warning(request, f"No ExamAdmin with username {username} was found. Please check that you are logging in with correct Login Type and the username and password are correct.", extra_tags='danger')
-                return redirect('students:login')
-
-            user = exam_admin[0].user
-            _user = auth.authenticate(username=username, password=password)
-            if not user == _user:
-                messages.warning(request, f"The username or the password is incorrect. Try again", extra_tags='danger')
-                return redirect('students:login')
-
-            auth.login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
-        else:
-            messages.error(f"Wrong Login As {login_as}", extra_tags='danger')
-            return redirect('students:login')
-
-        return redirect('students:home')
-
-    context = {
-        'login_as_types': [
-            TeacherGroup.LOGIN_NAME,
-            ExamAdminGroup.LOGIN_NAME,
-        ]
-    }
-
-    context = prepare_dark_mode(request, context)
-    return render(request, 'auth/login.html', context=context)
-
 @login_required
-def logout(request: HttpRequest):
-    auth.logout(request)
-    return redirect('students:home')
-
-@login_required
-def debug(request: HttpRequest):
-    context = {}
-
-    context = prepare_dark_mode(request, context)
-    return render(request, 'utils/debug.html', context=context)
-
-@login_required
-@permission_required('exam.add_subject', raise_exception=True)
-def debug_create_subjects(request: HttpRequest):
-    subject_objs = []
-    for subject in Subject.SUBJECTS:
-        if not Subject.objects.filter(subject_name=subject[0]).exists():
-            subject_objs.append(Subject(subject_name=subject[0]))
-
-    Subject.objects.bulk_create(subject_objs)
-
-    return redirect('students:debug')
-
-@login_required
-@permission_required('students.add_class', raise_exception=True)
-def debug_create_classes(request: HttpRequest):
-    cls_objs = []
-    for cls in Class.CLASSES:
-        if not Class.objects.filter(cls=cls[0]).exists():
-            _cls: Class = Class.objects.create(cls=cls[0])
-
-            _cls_subjects_raw: list[str] = CLASS_SUBJECTS[_cls.cls]
-            cls_subjects: list[Subject] = []
-
-            for _sub in _cls_subjects_raw:
-                cls_subjects.append(Subject.objects.get_or_create(subject_name=_sub)[0])
-
-            _cls.cls_subjects.set(cls_subjects)
-            cls_objs.append(_cls)
-
-    try:
-        # This gives integrity error with `student_class.id`.
-        # don't know why, but last class (12th) gets succesfully created, and all subjects assinged!
-        Class.objects.bulk_create(cls_objs)
-    except:
-        print("H" + "o"*15 + ":Err" + "o"*15 + "r")
-    
-    return redirect('students:debug')
-
-@login_required
-@permission_required('exam.delete_student', raise_exception=True)
+@permission_required('students.delete_student', raise_exception=True)
 def debug_delete_students(request: HttpRequest):
     Student.objects.all().delete()
-    return redirect("students:debug")
+    return redirect("core:debug")
 
 @login_required
 @permission_required('students.view_student', raise_exception=True)
@@ -241,7 +133,7 @@ def students(request: HttpRequest):
         'is_filter': is_filter,
         'classes': CLASSES or [],
         'sections': Class.get_classwise_sections(),
-        'genders': Student.GENDERS or [],
+        'genders': GENDERS or [],
         'pagination_get_parameters': pagination_get_parameters,
     }
 
@@ -288,9 +180,9 @@ def student_add(request: HttpRequest):
                 messages.warning(request, msg, extra_tags="danger")
 
     context = {
-        'genders': list(Student.GENDERS),
-        'admission_categories': list(Student.ADMISSION_CATEGORIES),
-        'social_categories': list(Student.SOCIAL_CATEGORIES),
+        'genders': list(GENDERS),
+        'admission_categories': list(ADMISSION_CATEGORIES),
+        'social_categories': list(SOCIAL_CATEGORIES),
         'classes': Class.get_classwise_sections()
     }
 
@@ -316,7 +208,7 @@ def student_detail(request: HttpRequest, uid: str):
 
     context = {
         'stu': stu,
-        'social_category_display': dict(Student.SOCIAL_CATEGORIES)[stu.social_category],
+        'social_category_display': dict(SOCIAL_CATEGORIES)[stu.social_category],
     }
 
     context = prepare_dark_mode(request, context)
@@ -351,9 +243,9 @@ def student_edit(request: HttpRequest, uid: str):
 
     context = {
         'stu': stu,
-        'genders': list(Student.GENDERS),
-        'admission_categories': list(Student.ADMISSION_CATEGORIES),
-        'social_categories': dict(Student.SOCIAL_CATEGORIES),
+        'genders': list(GENDERS),
+        'admission_categories': list(ADMISSION_CATEGORIES),
+        'social_categories': dict(SOCIAL_CATEGORIES),
         'classes': Class.get_classwise_sections()
     }
 
@@ -362,6 +254,7 @@ def student_edit(request: HttpRequest, uid: str):
 
 @login_required
 @permission_required('students.add_student', raise_exception=True)
+@permission_required('students.change_student', raise_exception=True)
 def students_upload(request: HttpRequest):
     
     new_students_list: list[Student] = []
@@ -414,10 +307,10 @@ def students_upload(request: HttpRequest):
                 # Create the Class XI and XIIth way!
                 cls, cls_created = Class.objects.get_or_create(cls=cls_number, section=d['section'], stream=stream)
 
-            rev_social_catergories = {v: k for k, v in dict(Student.SOCIAL_CATEGORIES).items()}
+            rev_social_catergories = {v: k for k, v in dict(SOCIAL_CATEGORIES).items()}
             social_cat = dict(rev_social_catergories)[d['social_category']]
 
-            rev_minorities = {v: k for k, v in dict(Student.MINORITIES).items()}
+            rev_minorities = {v: k for k, v in dict(MINORITIES).items()}
             minority = dict(rev_minorities)[d['minority']]
 
             s = Student()
@@ -446,7 +339,9 @@ def students_upload(request: HttpRequest):
             optional_subject_objects: list[Subject] = []
             if cls.cls in SUBJECTS_OPTIONAL_OUT_OF:
                 for opts in SUBJECTS_OPTIONAL_OUT_OF[cls.cls]:
-                    optional_subjects.append(random.choice(opts))
+                    if any([_sub in optional_subjects for _sub in opts]): continue
+                    op = random.choice(opts)
+                    optional_subjects.append(op)
             
             optional_subjects = list(set(optional_subjects))
 
@@ -470,10 +365,11 @@ def students_upload(request: HttpRequest):
 
         fs.delete(filename)
 
-        Student.objects.bulk_create(new_students_list)
-        for s, subs in students_optional_subjects.items():
-            for sub in subs:
-                s.optional_subjects_opted.through.objects.get_or_create(student=s, subject=sub)
+        students_created = Student.objects.bulk_create(new_students_list)
+        for stu in students_optional_subjects:
+            if stu in students_created:
+                for sub in students_optional_subjects[stu]:
+                    stu.optional_subjects_opted.through.objects.get_or_create(student=stu, subject=sub)
 
         # TODO: fix bulk update
         # Student.objects.bulk_update(existing_students_list, fields=("student_name", "cls", "roll", "phone_number", "email", "aadhar_number"), batch_size=10)
@@ -485,76 +381,3 @@ def students_upload(request: HttpRequest):
 
     context = prepare_dark_mode(request, context)
     return render(request, 'students_upload.html', context=context)
-
-# Teachers Area! No Student allowed!
-@permission_required('students.view_teacher', raise_exception=True)
-def teachers(request: HttpRequest):
-    all_teachers = Teacher.objects.all()
-
-    context = {
-        'teachers': all_teachers,
-    }
-
-    context = prepare_dark_mode(request, context)
-    return render(request, 'teachers/teachers.html', context=context)
-
-@login_required
-@permission_required('students.add_teacher', raise_exception=True)
-def teacher_add(request: HttpRequest):
-
-    if request.method == "POST":
-        print(request.POST)
-        teacher_name = request.POST.get('teachers_name')
-        username = request.POST.get('username')
-        # password = request.POST.get('password')
-        # password_rep = request.POST.get('password_repeat')
-        salary = request.POST.get('salary')
-        subject = request.POST.get('subject')
-
-        is_class_teacher, cls = False, None
-        if request.POST.get('class_teacher_of'):
-            is_class_teacher = True
-            _cls, _section = request.POST.get('class_teacher_of').split("-")
-            cls, cls_created = Class.objects.get_or_create(cls=_cls, section=_section)
-            same_cls_teacher = Teacher.objects.filter(teacher_of_class=cls)
-
-        same_username = Teacher.objects.filter(user__username=username)
-
-        if same_username.exists():
-            # Sorry teacher, you have to pick another username...
-            messages.warning(request, f"Username {username} already used! Pick another username.", extra_tags='danger')
-            return redirect('students:teacher-add')
-
-        if is_class_teacher:
-            if same_cls_teacher.count() > 0:
-                # One Class(and section) may have only 1 (or 2 ???) Class Teachers....
-                messages.warning(request, f"Class Teacher of class {request.POST.get('cls_teacher_of')} already exists ({cls.class_teacher})", extra_tags="danger")
-                return redirect('students:teacher-add')
-
-        new_teacher: Teacher = Teacher.objects.create(
-                                teacher_name=teacher_name,
-                                user_name=username,
-                                salary=salary,
-                                subject=Subject.objects.get(subject_name=subject),
-                                teacher_of_class=cls
-                            )
-
-        messages.success(request, f"Teacher {new_teacher} successfully created", extra_tags='success')
-        return redirect("students:home")
-
-    context = {
-        'genders': list(Student.GENDERS),
-        'admission_categories': list(Student.ADMISSION_CATEGORIES),
-        'social_categories': list(Student.SOCIAL_CATEGORIES),
-        'subjects': SUBJECTS,
-        'classes': Class.get_classwise_sections()
-    }
-
-    context = prepare_dark_mode(request, context)
-    return render(request, 'teachers/teacher_add.html', context=context)
-
-def teacher_detail(request: HttpRequest, tid: int):
-    pass
-
-def teacher_edit(request: HttpRequest, tid: int):
-    pass

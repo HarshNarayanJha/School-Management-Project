@@ -12,9 +12,9 @@ for i in exam_names:
 if not user_is_class_teacher:
     # Append the class options!
     for i in classes:
-        elem = html.OPTION(f"{i[1]}")
-        elem.attrs["id"] = f"cls_{i[0].lower()}"
-        elem.attrs["value"] = i[0]
+        elem = html.OPTION(f"{i}")
+        elem.attrs["id"] = f"cls_{i.lower()}"
+        elem.attrs["value"] = i
         document['cls'] <= elem
 
     # Append the sections options!
@@ -26,7 +26,7 @@ if not user_is_class_teacher:
             elem.attrs["value"] = i
             document['section'] <= elem
 
-    set_up_sections(classes[0][1])
+    set_up_sections(classes[0])
 
     @bind(document['cls'], 'change')
     def on_cls_change(ev):

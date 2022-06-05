@@ -11,7 +11,7 @@
 
       <div class="d-flex justify-content-between">
         <p class="m-0 font-size-24">Teachers</p>
-        <a href="{% url 'students:teacher-add' %}" class="btn btn-primary btn-rounded mt-auto mb-auto"><span class="ion ion-ios-plus-outline"></span>&nbsp;Add Teacher</a>
+        <a href="{% url 'core:teacher-add' %}" class="btn btn-primary btn-rounded mt-auto mb-auto"><span class="ion ion-ios-plus-outline"></span>&nbsp;Add Teacher</a>
       </div>
 
       <!-- Filter Form (Collapsable!!! yoo hoooooo...) -->
@@ -102,7 +102,7 @@
 
             <input type="submit" value="Find/Filter!" class="btn btn-success">
             <!-- TODO: Make the anchor tag also uninteractable if disabled... -->
-            <button id="filter_form_reset" class="btn btn-danger disabled" disabled><a class="text-reset text-decoration-none" href="{% url 'students:students' %}">Clear all Filters</a></button>
+            <button id="filter_form_reset" class="btn btn-danger disabled" disabled><a class="text-reset text-decoration-none" href="{% url 'core:teachers' %}">Clear all Filters</a></button>
           </form>
         </div>
         <div class="alert alert-secondary filled-lm">
@@ -134,14 +134,14 @@
             <tr>
               <th>{{ forloop.counter }}</th>
               {% comment %}<!-- <th>{{ forloop.counter0|add:teachers.start_index }}</th> -->{% endcomment %}
-              <th><a href="{% url 'students:teacher-detail' tid=teacher.pk %}" class="text-decoration-none text-reset" target="_blank" draggable="false">{{ teacher.teacher_name }}</a></th>
+              <th><a href="{% url 'core:teacher-detail' tid=teacher.pk %}" class="text-decoration-none text-reset" target="_blank" draggable="false">{{ teacher.teacher_name }}</a></th>
               <th>{{ teacher.user_name }}</th>
               <th>{{ teacher.salary }}</th>
               <th>{{ teacher.subject }}</th>
               <th>{{ teacher.teacher_of_class }}</th>
               <th>
-                <a href="{% url 'students:teacher-detail' tid=teacher.pk %}" class="btn btn-sm btn-rounded btn-success"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
-                <a href="{% url 'students:teacher-edit' tid=teacher.pk %}" class="btn btn-sm btn-rounded btn-secondary"><span class="fa fa-edit">&nbsp;&nbsp;</span>Edit</a>
+                <a href="{% url 'core:teacher-detail' tid=teacher.pk %}" class="btn btn-sm btn-rounded btn-success"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
+                <a href="{% url 'core:teacher-edit' tid=teacher.pk %}" class="btn btn-sm btn-rounded btn-secondary"><span class="fa fa-edit">&nbsp;&nbsp;</span>Edit</a>
               </th>
             </tr>
             {% endfor %}

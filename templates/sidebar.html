@@ -1,7 +1,7 @@
 <div class="sidebar">
 
     <div class="sidebar-menu">
-      <a href="{% url 'students:home' %}" class="sidebar-brand">
+      <a href="{% url 'core:home' %}" class="sidebar-brand">
         <!-- <img src="..." alt="..."> -->
         School Management System
       </a>
@@ -20,12 +20,12 @@
 
       <br />
 
-      <h5 class="sidebar-title"><a href="{% url 'students:home' %}" class="text-light-dm">Teachers</a></h5>
+      <h5 class="sidebar-title"><a href="{% url 'core:teachers' %}" class="text-light-dm">Teachers</a></h5>
       <div class="sidebar-divider"></div>
-      <a href="{% url 'students:teachers' %}" class="sidebar-link">Teachers</a>
-      <a href="/admin/students/teacher/" class="sidebar-link">Teachers (Admin)</a>
-      <a href="{% url 'students:teacher-add' %}" class="sidebar-link">Add Teacher</a>
-      <a href="/admin/students/teacher/add/" class="sidebar-link">Add Teacher (Admin)</a>
+      <a href="{% url 'core:teachers' %}" class="sidebar-link">Teachers</a>
+      <a href="/admin/core/teacher/" class="sidebar-link">Teachers (Admin)</a>
+      <a href="{% url 'core:teacher-add' %}" class="sidebar-link">Add Teacher</a>
+      <a href="/admin/core/teacher/add/" class="sidebar-link">Add Teacher (Admin)</a>
 
       <br />
 

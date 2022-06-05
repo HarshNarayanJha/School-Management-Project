@@ -23,7 +23,7 @@ if not user_is_cls_teacher:
     cls_none.attrs["id"] = f"students_filter_cls_None"
     cls_none.attrs["value"] = ''
     document['students_filter_cls'] <= cls_none
-
+    
     for i in classes:
         elem = html.OPTION(f"{i[1]}")
         elem.attrs["id"] = f"students_filter_cls_{i[1].lower()}"

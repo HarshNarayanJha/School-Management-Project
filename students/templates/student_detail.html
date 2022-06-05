@@ -362,12 +362,12 @@
                 </p>
             </div>
         </div>
-        {% if stu.extra_subjects_opted.all %}
+        {% if stu.optional_subjects_opted.all %}
         <div class="card bg-very-dark-dm">
             <p class="card-title text-secondary-dm">Extra Subjects Opted <small class="text-primary">({{ stu.cls.stream }} stream)</small></p>
             <hr class="sidebar-divider" />
             <span class="font-size-16">
-                {% for sub in stu.extra_subjects_opted.all %}
+                {% for sub in stu.optional_subjects_opted.all %}
                     {{ forloop.counter }}. {{ sub }}
                     &nbsp;
                     <!-- Dark-Mode copy button -->

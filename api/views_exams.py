@@ -4,8 +4,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from exam.models import Exam, Result, Marks, Subject
-from exam.serializers import ExamSerializer, ResultSerializer, MarkSerializer, SubjectSerializer
+from exam.models import Exam, Result, Marks
+from core.models import Subject
+from core.serializers import SubjectSerializer
+from exam.serializers import ExamSerializer, ResultSerializer, MarkSerializer
 
 from school_management import settings
 

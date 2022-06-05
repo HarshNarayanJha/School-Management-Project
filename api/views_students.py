@@ -5,8 +5,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from students.models import Student, Class
-from students.serializers import StudentSerializer, ClassSerializer
+from students.models import Student
+from core.models import Class
+from students.serializers import StudentSerializer
+from core.serializers import ClassSerializer
 
 from school_management import settings
 

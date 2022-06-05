@@ -1,63 +1,15 @@
 from django.db import models
 from django.core.validators import RegexValidator
-from django.contrib.auth.models import User
 
-from .constants import CLASSES, CLASSES_NUMBER_MAP, SUBJECTS_OPTIONAL_OUT_OF
-
-from exam.constants import SUBJECTS, CLASS_SUBJECTS
-
-class Class(models.Model):
-    class Meta:
-        verbose_name = "Class"
-        verbose_name_plural = "Classes"
-
-    cls = models.CharField(verbose_name="Class", max_length=4, blank=False, null=False, choices=CLASSES)#, editable=False)
-    section = models.CharField(verbose_name="Section", max_length=1, blank=True, null=True, help_text="Section name like A, B, C, ...")
-    cls_subjects = models.ManyToManyField(to='exam.Subject', verbose_name="Subjects of the Class")
-
-    stream = models.CharField("Stream", max_length=10, null=True, blank=True, help_text="Stream of the Class if class > XI")
-
-    def __str__(self) -> str:
-        return f"{self.cls} - {self.section}"
-
-    def get_sections(self) -> "list[str]":
-        sects = []
-        for _cls in Class.objects.filter(cls=self.cls):
-            sects.append(_cls.section)
-        return sects
-
-    @classmethod
-    def get_classwise_sections(self) -> "dict[str, list[str]]":
-        """
-        Returns the mapping of all Classes and their sections
-        """
-        sections = {}
-        for _cls in Class.objects.all():
-            sections[_cls.cls] = _cls.get_sections()
-
-        return sections
-
-    def get_optional_subjects(self):
-        optional_subjects = []
-        if self.cls in SUBJECTS_OPTIONAL_OUT_OF:
-            for subs in SUBJECTS_OPTIONAL_OUT_OF[self.cls]:
-                for sub in subs: optional_subjects.append(sub)
-
-        return optional_subjects
+from .constants import ADMISSION_CATEGORIES, ADMISSION_FLAGS, BLOOD_GROUPS, GENDERS, MINORITIES,\
+                SOCIAL_CATEGORIES, STUDENT_STATUSES, YES_NO_CHOICES
+from core.constants import SUBJECTS
 
 class StudentManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().order_by("cls", "roll")
 
 class Student(models.Model):
-    ADMISSION_CATEGORIES = (("I","I"),("II","II"),("III","III"),("IV","IV"),("V","V"))
-    SOCIAL_CATEGORIES = (("GEN","General"),("SC","SC"),("ST","ST"),("OBC","OBC"))
-    GENDERS = (("Boy","Boy"),("Girl","Girl"))
-    BLOOD_GROUPS = (("A+","A+"),("A-","A-"),("B+","B+"),("B-","B-"),("O+","O+"),("O-","O-"),("AB+","AB+"),("AB-","AB-"))
-    STUDENT_STATUSES = (("Active","Active"),("Deactive","Deactive"))
-    YES_NO_CHOICES = (("YES","YES"),("NO","NO"))
-    MINORITIES = (("NA","Not Applicable"),("Muslim","Muslim"))
-    ADMISSION_FLAGS = (("Existing","Existing"),)
     
     school_code = models.IntegerField(verbose_name="School Code", blank=False, null=False)
 
@@ -71,7 +23,7 @@ class Student(models.Model):
     admission_number = models.CharField(verbose_name="Admission Number", max_length=6, validators=[admission_number_regex], blank=False, null=False)
 
     student_name = models.CharField("Student's Name", max_length=30, null=False)
-    cls = models.ForeignKey(to=Class, verbose_name="Class", on_delete=models.CASCADE, blank=False, null=False)
+    cls = models.ForeignKey(to='core.Class', verbose_name="Class", on_delete=models.CASCADE, blank=False, null=False)
     roll = models.IntegerField(verbose_name="Roll No.", blank=False, null=False)
 
     fathers_name = models.CharField("Father's Name", max_length=30, null=False)
@@ -102,7 +54,7 @@ class Student(models.Model):
     rte = models.CharField("RTE", max_length=3, null=False, choices=YES_NO_CHOICES)
     kvs_ward = models.CharField("KVS Ward", max_length=3, null=False, choices=YES_NO_CHOICES)
 
-    optional_subjects_opted = models.ManyToManyField(to='exam.Subject', verbose_name="Extra Subjects Opted (if any)")
+    optional_subjects_opted = models.ManyToManyField(to='core.Subject', verbose_name="Extra Subjects Opted (if any)")
 
     objects = StudentManager()
 
@@ -127,26 +79,3 @@ class Student(models.Model):
         opt_subjects = dict(self.optional_subjects_opted.all().values_list()).values()
         ls = [dict(SUBJECTS)[sub].upper() for sub in self.cls.get_optional_subjects() if sub not in opt_subjects]
         return ls
-
-class Teacher(models.Model):
-    teacher_name = models.CharField("Teacher's Name", max_length=30, null=False)
-    user_name = models.CharField("User Name", max_length=150, help_text="Enter an username that you will use for logging in.", unique=True)
-    # password = models.("Password", )
-
-    user = models.OneToOneField(to=User, on_delete=models.CASCADE, editable=False, null=True)
-
-    salary = models.DecimalField("Salary (in rupees)", decimal_places=2, max_digits=10, blank=False, null=False)
-    subject = models.ForeignKey(to="exam.Subject", on_delete=models.CASCADE, verbose_name="Subject", related_name='subject_teachers', null=False, blank=False)
-    teacher_of_class = models.OneToOneField(to=Class, on_delete=models.CASCADE, verbose_name="Class Teacher Of", related_name='class_teacher', blank=True, null=True)
-
-    def __str__(self) -> str:
-        return f"{self.teacher_name}"
-        
-    def delete(self, *args, **kwargs):
-        # TODO: this sometimes works and sometimes not..
-        # This does works when the teacher is deleted from the change page
-        # But not when from the checkbox and action `delete selected` on the list page.
-        user = User.objects.get(username=self.user_name)
-        user.delete()
-        
-        return super().delete(*args, **kwargs)

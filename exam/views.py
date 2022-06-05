@@ -4,13 +4,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required, permission_required
 
-from .models import Exam, EXAM_TYPES, Marks, Result, Subject
-
-from students.models import Student, Class
-from students.constants import CLASSES, CLASSES_NUMBER_MAP, SUBJECTS_OPTIONAL_OUT_OF
+from core.models import Class
+from core.constants import CLASSES
+from .models import Exam, Marks, Result
+from students.models import Student
 from students.utils import prepare_dark_mode
-
-from .constants import SUBJECTS, EXAM_TYPES, CLASS_SUBJECTS
+from .constants import EXAM_TYPES
+from core.constants import SUBJECTS
 
 @login_required
 def home(request: HttpRequest):
@@ -118,6 +118,8 @@ def exam_add(request: HttpRequest):
         # DID: ~takes~ *took* a horibble 20 seconds for class 9th (69 students)
         # But now, I optimised it now it's around 1.5 secs :)
         # But still heavy!
+        print(_cls.cls_subjects.all())
+        # return redirect("exam:exam-add")
         for student in exam_students:
             result: Result = Result(exam=new_exam, student=student)
             _marks = []
@@ -148,7 +150,7 @@ def exam_add(request: HttpRequest):
 
     context = {
         'exam_names': list(EXAM_TYPES) or [],
-        'classes': list(CLASSES) or [],
+        'classes': list(Class.get_classwise_sections().keys()) or [],
         'sections': Class.get_classwise_sections(),
     }
 
