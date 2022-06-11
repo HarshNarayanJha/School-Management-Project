@@ -47,6 +47,11 @@
                     </select>
                 </div>
                 <div class="form-group form-inline">
+                    <label for="school" class="required">School: </label>
+                    <select class="form-control" name="school" id="school">
+                    </select>
+                </div>
+                <div class="form-group form-inline">
                     <label for="class_teacher_of" class="required">Class Teacher of: </label>
                     <select class="form-control" name="class_teacher_of" id="class_teacher_of">
                     </select>
@@ -66,6 +71,7 @@
     # generate and pre-populate the option fields
     subjects = {{ subjects|safe }}
     classes = {{ classes|safe }}
+    schools = {{ schools|safe }}
 </script>
 
 <script type="text/python" src="{% static 'py/teacher_add_page.py' %}" ></script>

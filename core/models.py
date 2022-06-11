@@ -3,6 +3,25 @@ from django.contrib.auth.models import User
 
 from .constants import CLASSES, SUBJECTS_OPTIONAL_OUT_OF, SUBJECTS
 
+class School(models.Model):
+    school_code = models.CharField(verbose_name="School Code", max_length=4 , blank=False, null=False, unique=True)
+    school_name = models.CharField(verbose_name="School Name", max_length=50, blank=False, null=False)
+    school_name_short = models.CharField(verbose_name="School Name (Short)", max_length=25, blank=False, null=False)
+    city = models.CharField(verbose_name="City", max_length=30, blank=False, null=False)
+
+    def __str__(self) -> str:
+        return f"[{self.school_code}] {self.school_name} - {self.city}"
+
+    @classmethod
+    def get_all_schools(self):
+        return School.objects.all()
+
+    @classmethod
+    def get_classes(self):
+        return Class.objects.filter(school__pk=self.pk)
+    
+    def get_teachers(self):
+        return Teacher.objects.filter(school__pk=self.pk)
 
 class Class(models.Model):
     class Meta:
@@ -15,25 +34,39 @@ class Class(models.Model):
 
     stream = models.CharField("Stream", max_length=10, null=True, blank=True, help_text="Stream of the Class if class > XI")
 
+    school = models.ForeignKey(to=School, on_delete=models.CASCADE, blank=False, null=False, editable=False)
+
     def __str__(self) -> str:
         return f"{self.cls} - {self.section}"
 
     def get_sections(self) -> "list[str]":
         sects = []
-        for _cls in Class.objects.filter(cls=self.cls):
+        for _cls in Class.objects.filter(cls=self.cls, school=self.school):
             sects.append(_cls.section)
         return sects
 
     @classmethod
-    def get_classwise_sections(self) -> "dict[str, list[str]]":
+    def get_classwise_sections(self, school_code: str) -> "dict[str, list[str]]":
         """
-        Returns the mapping of all Classes and their sections
+        Returns the mapping of all Classes and their sections of a given school
         """
         sections = {}
-        for _cls in Class.objects.all():
+        for _cls in Class.objects.filter(school__school_code=school_code):
             sections[_cls.cls] = _cls.get_sections()
-
         return sections
+
+    @classmethod
+    def get_schoolwise_classes_sections(self, school_codes: "list[str]") -> "dict[str, dict[str, list[str]]]":
+        """
+        Returns a dict of school_codes as keys and `get_claswise_sections` as values.
+        Takes an param `school_codes` to get only those schools. If None is passed, the the behaviour of
+        Super User is assumed (all schools!)
+        """
+        schoolwise_classes = {}
+        schools = School.objects.filter(school_code__in=school_codes) if school_codes else School.objects.all()
+        for sc in schools:
+            schoolwise_classes[sc.school_code] = Class.get_classwise_sections(sc.school_code)
+        return schoolwise_classes
 
     def get_optional_subjects(self):
         optional_subjects = []
@@ -78,6 +111,8 @@ class ExamAdmin(models.Model):
 
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, editable=False, null=True)
 
+    school = models.ForeignKey(to=School, on_delete=models.CASCADE, blank=False, null=False)
+
     def __str__(self) -> str:
         return f"{self.admin_name}"
         
@@ -98,8 +133,10 @@ class Teacher(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, editable=False, null=True)
 
     salary = models.DecimalField("Salary (in rupees)", decimal_places=2, max_digits=10, blank=False, null=False)
-    subject = models.ForeignKey(to=Subject, on_delete=models.CASCADE, verbose_name="Subject", related_name='subject_teachers', null=False, blank=False)
+    subject = models.ForeignKey(to=Subject, on_delete=models.RESTRICT, verbose_name="Subject", related_name='subject_teachers', null=False, blank=False)
     teacher_of_class = models.OneToOneField(to=Class, on_delete=models.SET_NULL, verbose_name="Class Teacher Of", related_name='class_teacher', blank=True, null=True)
+
+    school = models.ForeignKey(to=School, on_delete=models.CASCADE, blank=False, null=False, editable=True)
 
     def __str__(self) -> str:
         return f"{self.teacher_name}"

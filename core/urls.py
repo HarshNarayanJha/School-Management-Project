@@ -23,8 +23,11 @@ auth_urlpatterns = [
 
 debug_urlpatterns = [
     path('debug/', views.debug, name='debug'),
+    path('debug/create/schools/', views.debug_create_schools, name='debug-schools-create'),
     path('debug/create/subjects/', views.debug_create_subjects, name='debug-subjects-create'),
-    path('debug/create/classes/', views.debug_create_classes, name='debug-classes-create'),
+    # path('debug/create/classes/', views.debug_create_classes, name='debug-classes-create'),
+    path('debug/create/teachers/', views.debug_create_teachers, name='debug-teachers-create'),
+    path('debug/create/admins/', views.debug_create_admins, name='debug-admins-create'),
 ]
 
 urlpatterns += teacher_urlpatterns

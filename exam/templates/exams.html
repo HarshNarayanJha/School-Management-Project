@@ -86,6 +86,7 @@
             <thead>
                 <tr class="alert alert-primary filled-lm">
                     <th>SN</th>
+                    <th>School Code</th>
                     <th>Exam Name</th>
                     <th>Session</th>
                     <th>Class</th>
@@ -96,6 +97,7 @@
                 {% for exam in exams %}
                 <tr>
                   <th>{{ forloop.counter }}</th>
+                  <th>{{ exam.cls.school.school_code }}</th>
                   <th><a href="{% url 'exams:exam-detail' exmid=exam.pk %}" class="text-decoration-none text-reset" target="_blank" draggable="false">{{ exam.display_exam_name }}</a></th>
                   <th>{{ exam.session }}</th>
                   <th>{{ exam.cls }}</th>
@@ -203,9 +205,9 @@
     request_get = {{ request.GET.dict|safe }}
     exam_types = {{ exam_types|safe }}
     classes = {{ classes|safe }}
-    sections: dict[str, list[str]] = {{ sections|safe }}
     
     user_is_cls_teacher = {{ request.user.is_class_teacher }}
+    user_school_code = "{{ request.user.get_school.school_code }}"
 </script>
 <script type="text/python3" src="{% static 'py/exam_filter.py' %}"></script>
 {% endblock scripts %}

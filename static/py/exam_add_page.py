@@ -1,6 +1,6 @@
 from browser import document, html, bind
-from exam_add_options import classes, exam_names, sections
-from exam_add_options import user_is_class_teacher, user_class_teacher_cls, user_class_teacher_section
+from exam_add_options import classes, exam_names
+from exam_add_options import user_is_class_teacher, user_class_teacher_cls, user_class_teacher_section, user_school_code
 
 # Append the class options!
 for i in exam_names:
@@ -11,7 +11,7 @@ for i in exam_names:
 
 if not user_is_class_teacher:
     # Append the class options!
-    for i in classes:
+    for i in classes[user_school_code]:
         elem = html.OPTION(f"{i}")
         elem.attrs["id"] = f"cls_{i.lower()}"
         elem.attrs["value"] = i
@@ -19,14 +19,14 @@ if not user_is_class_teacher:
 
     # Append the sections options!
     def set_up_sections(current_cls):
-        sects = sections[current_cls.upper()]
+        sects = classes[user_school_code][current_cls.upper()]
         for i in sects:
             elem = html.OPTION(f"{i}")
             elem.attrs["id"] = f"cls_section_{i.lower()}"
             elem.attrs["value"] = i
             document['section'] <= elem
 
-    set_up_sections(classes[0])
+    set_up_sections(list(classes[user_school_code].keys())[0])
 
     @bind(document['cls'], 'change')
     def on_cls_change(ev):

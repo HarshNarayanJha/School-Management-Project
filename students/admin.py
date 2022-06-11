@@ -9,11 +9,14 @@ import nested_admin
 class MarksInline(nested_admin.NestedTabularInline):
     model = Marks
     extra = 0
+    can_delete = False
+    classes = ["collapse"]
 
 class ResultInline(nested_admin.NestedStackedInline):
     model = Result
     extra = 0
     can_delete = False
+    is_sortable = False
 
     readonly_fields = ("exam",)
     inlines = [MarksInline]
@@ -27,10 +30,13 @@ class ResultInline(nested_admin.NestedStackedInline):
         return Result.objects.filter(student=obj).count()
 
 class StudentAdmin(nested_admin.NestedModelAdmin):
-    list_display = ("student_name", "uid", "dob", "cls", "roll")
-    ordering = ("cls","roll")
-    list_filter = ("cls",)
-    search_fields = ("student_name", "uid", "dob")
+    list_display = ("student_name", "school_code", "uid", "dob", "cls", "roll", "gender", "phone_number")
+    ordering = ("school__school_code", "cls", "roll", "student_name")
+    list_filter = ("school__school_code", "gender", "cls")
+    search_fields = ("student_name", "uid", "dob", "phone_number")
+
+    def school_code(self, stu):
+        return stu.school.school_code
 
     inlines = [ResultInline]
 

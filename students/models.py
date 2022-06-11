@@ -11,7 +11,7 @@ class StudentManager(models.Manager):
 
 class Student(models.Model):
     
-    school_code = models.IntegerField(verbose_name="School Code", blank=False, null=False)
+    school = models.ForeignKey(to="core.School", blank=False, null=False, on_delete=models.CASCADE)
 
     uid_regex = RegexValidator(r'^\d{15,16}$', "UID should be of 15 digits")
     uid = models.CharField("Student's UID Number", primary_key=True, max_length=16, validators=[uid_regex], blank=False, null=False)

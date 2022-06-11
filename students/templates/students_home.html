@@ -44,7 +44,11 @@
         <form id="students-upload-form" class="w-400 mw-full" method="POST" action="{% url 'students:students-upload' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
-                <div class="custom-file">
+                <label for="school" class="required">School: </label>
+                <select class="form-control" name="school" id="school" required>
+                </select>
+
+                <div class="custom-file mt-20">
                     <input type="file" accept="application/vnd.ms-excel" name="students-file-input" id="students-file-input" required/>
                     <label for="students-file-input" class="required">Upload Students UBI Excel file</label>
                 </div>
@@ -76,7 +80,7 @@
         });
     </script> -->
     <script type="text/python">
-        from browser import document, alert, bind
+        from browser import html, document, alert, bind
 
         form = document['students-upload-form']
         file_upload = document['students-file-input']
@@ -94,6 +98,15 @@
         if len(document.select(".file-names")) > 0:
             file_name_text = document.select(".file-names")[0]
             file_name_text.classList.add("text-monospace")
+
+        schools = {{ schools|safe }}
+
+        # Append the School options
+        for code, name in schools:
+            elem = html.OPTION(f"{name}")
+            elem.attrs["id"] = f"school_{code}"
+            elem.attrs["value"] = f"{code}"
+            document['school'] <= elem
 
     </script>
 {% endblock scripts %}

@@ -195,13 +195,24 @@
                 <p class="card-title text-secondary-dm">School-related Details</p>
 
                 <p>
-                    <span class="text-muted-dm">School Code</span><span class="font-size-16 float-right">{{ stu.school_code }}
+                    <span class="text-muted-dm">School Code</span><span class="font-size-16 float-right">{{ stu.school.school_code }}
                         &nbsp;
                         <!-- Dark-Mode copy button -->
-                        <span onclick="python_copy('{{ stu.school_code }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        <span onclick="python_copy('{{ stu.school.school_code }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
                         </span>
                         <!-- Light-Mode copy button -->
-                        <span onclick="python_copy('{{ stu.school_code }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        <span onclick="python_copy('{{ stu.school.school_code }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
+                        </span>                 
+                    </span>
+                </p>
+                <p>
+                    <span class="text-muted-dm">School</span><span class="font-size-16 float-right">{{ stu.school.school_name_short }}
+                        &nbsp;
+                        <!-- Dark-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.school.school_name_short }}');" class="ion ion-ios-copy-outline badge badge-pill font-size-16 bg-dark-light hidden-lm">
+                        </span>
+                        <!-- Light-Mode copy button -->
+                        <span onclick="python_copy('{{ stu.school.school_name_short }}');" class="ion ion-ios-copy badge badge-pill badge-secondary font-size-18 hidden-dm">
                         </span>                 
                     </span>
                 </p>

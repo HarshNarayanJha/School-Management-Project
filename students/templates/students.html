@@ -139,7 +139,7 @@
             {% for student in students %}
             <tr>
               <th>{{ forloop.counter0|add:students.start_index }}</th>
-              <th>{{ student.school_code }}</th>
+              <th>{{ student.school.school_code }}</th>
               <th>{{ student.uid }}</th>
               <th>{{ student.roll }}</th>
               <th><a href="{% url 'students:student-detail' uid=student.uid %}" class="text-decoration-none text-reset" target="_blank" draggable="false">{{ student.student_name }}</a></th>
@@ -263,7 +263,6 @@
   request_get = {{ request.GET.dict|safe }}
 
   classes = {{ classes|safe }}
-  sections = {{ sections|safe }}
   genders = {{ genders|safe }}
 
   user_is_cls_teacher = {{ request.user.is_class_teacher }}

@@ -1,6 +1,6 @@
 from browser import document, html, bind
-from exam_filter_options import is_filter, request_get, exam_types, classes, sections
-from exam_filter_options import user_is_cls_teacher
+from exam_filter_options import is_filter, request_get, exam_types, classes
+from exam_filter_options import user_is_cls_teacher, user_school_code
 
 filter_form_reset = document["filter_form_reset"]
 
@@ -44,10 +44,10 @@ if not user_is_cls_teacher:
     cls_none.attrs["value"] = ''
     document['exams_filter_cls'] <= cls_none
 
-    for i in classes:
-        elem = html.OPTION(f"{i[1]}")
-        elem.attrs["id"] = f"exams_filter_cls_{i[1].lower()}"
-        elem.attrs["value"] = i[1]
+    for i in classes[user_school_code]:
+        elem = html.OPTION(f"{i}")
+        elem.attrs["id"] = f"exams_filter_cls_{i.lower()}"
+        elem.attrs["value"] = i
         document['exams_filter_cls'] <= elem
 
     # pre-select the correct option!
@@ -65,9 +65,9 @@ if not user_is_cls_teacher:
         sec_none.attrs["value"] = ''
         document['exams_filter_section'] <= sec_none
         if current_cls:
-            sects = sections[current_cls.upper()]
+            sects = classes[user_school_code][current_cls.upper()]
         else:
-            sects = max(sections.values(), key=lambda m: len(m))
+            sects = max(classes[user_school_code].values(), key=lambda m: len(m))
         for i in sects:
             elem = html.OPTION(f"{i}")
             elem.attrs["id"] = f"exams_filter_section_{i.lower()}"

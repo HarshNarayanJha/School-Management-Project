@@ -121,6 +121,7 @@
           <thead>
               <tr class="alert alert-success filled-lm">
                 <th class="text-center">SN</th>
+                <th class="text-center">School Code</th>
                 <th class="text-center">Teacher's Name</th>
                 <th class="text-center">Username</th>
                 <th class="text-center">Salary</th>
@@ -134,6 +135,7 @@
             <tr>
               <th>{{ forloop.counter }}</th>
               {% comment %}<!-- <th>{{ forloop.counter0|add:teachers.start_index }}</th> -->{% endcomment %}
+              <th>{{ teacher.school.school_code }}</th>
               <th><a href="{% url 'core:teacher-detail' tid=teacher.pk %}" class="text-decoration-none text-reset" target="_blank" draggable="false">{{ teacher.teacher_name }}</a></th>
               <th>{{ teacher.user_name }}</th>
               <th>{{ teacher.salary }}</th>

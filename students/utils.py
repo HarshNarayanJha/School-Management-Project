@@ -1,3 +1,4 @@
+import random
 import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
@@ -140,10 +141,6 @@ def format_students_data(data: pd.DataFrame) -> pd.DataFrame:
             return series
 
     data.sort_values(by=['cls', 'section', 'student_name'], inplace=True, key=sort_key)
-
-    # with open('data.txt', 'w') as fp:
-    #     for i in list(data[['cls','section', 'student_name']].values):
-    #         fp.write(f"{i[0]} - {i[1]} - {i[2]}\n")
 
     data.index = np.arange(1, data.shape[0] + 1)
     return data

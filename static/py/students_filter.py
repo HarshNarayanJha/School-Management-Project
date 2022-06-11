@@ -1,5 +1,5 @@
 from browser import document, html, bind
-from students_filter_options import is_filter, request_get, classes, sections, genders
+from students_filter_options import is_filter, request_get, classes, genders
 from students_filter_options import user_is_cls_teacher
 
 filter_form_reset = document["filter_form_reset"]
@@ -23,7 +23,7 @@ if not user_is_cls_teacher:
     cls_none.attrs["id"] = f"students_filter_cls_None"
     cls_none.attrs["value"] = ''
     document['students_filter_cls'] <= cls_none
-    
+    print(classes)
     for i in classes:
         elem = html.OPTION(f"{i[1]}")
         elem.attrs["id"] = f"students_filter_cls_{i[1].lower()}"

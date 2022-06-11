@@ -12,7 +12,7 @@ import uuid
 import pandas as pd
 
 from .models import Student
-from core.models import Class, Teacher, ExamAdmin, Subject
+from core.models import Class, School, Teacher, ExamAdmin, Subject
 from core.constants import CLASSES, SUBJECTS_OPTIONAL_OUT_OF, SUBJECTS
 from students.constants import ADMISSION_CATEGORIES, BLOOD_GROUPS, ADMISSION_FLAGS,\
                 GENDERS, MINORITIES, SOCIAL_CATEGORIES, STUDENT_STATUSES, YES_NO_CHOICES
@@ -23,8 +23,16 @@ from .utils import get_create_success_message, get_roll_warning, get_uid_warning
 @login_required
 def home(request: HttpRequest):
 
+    if request.user.get_school():
+        schools = [(s.school_code, str(s)) for s in School.objects.filter(school_code=request.user.get_school().school_code)]
+    elif request.user.is_superuser:
+        schools = [(s.school_code, str(s)) for s in School.get_all_schools()]
+    else:
+        raise Exception("User hasn't any school and is not super user!")
+
     context = {
         'birthdays': get_birthdays(),
+        'schools': schools,
     }
 
     context = prepare_dark_mode(request, context)
@@ -67,9 +75,11 @@ def students(request: HttpRequest):
     students_filter_gender = request.GET.get('students_filter_gender', "").strip()
 
     initial_all_students = Student.objects.all()
+    if request.user.get_school():
+        initial_all_students = initial_all_students.filter(school=request.user.get_school())
+
     if request.user.is_class_teacher():
-        initial_all_students = Student.objects.filter(cls__cls=request.user.teacher.teacher_of_class.cls,
-                                                        cls__section=request.user.teacher.teacher_of_class.section)
+        initial_all_students = Student.objects.filter(cls=request.user.teacher.teacher_of_class)
 
         if (students_filter_cls and students_filter_cls != request.user.teacher.teacher_of_class.cls) \
             or students_filter_section and students_filter_section != request.user.teacher.teacher_of_class.section:
@@ -131,8 +141,7 @@ def students(request: HttpRequest):
         'num_all_students': len(all_students),
         'num_students': len(page_students),
         'is_filter': is_filter,
-        'classes': CLASSES or [],
-        'sections': Class.get_classwise_sections(),
+        'classes': Class.get_classwise_sections(request.user.get_school()),
         'genders': GENDERS or [],
         'pagination_get_parameters': pagination_get_parameters,
     }
@@ -161,15 +170,15 @@ def student_add(request: HttpRequest):
         else:
             try:
                 new_stu: Student = Student.objects.create(school_code=request.POST.get("school_code"),
-                                        student_name=request.POST.get("student_name"),
-                                        fathers_name=request.POST.get("fathers_name"),
-                                        mothers_name=request.POST.get("mothers_name"),
-                                        admission_category=request.POST.get("admission_category"),
-                                        social_category=request.POST.get("social_category"),
-                                        uid=request.POST.get("uid"), cls=_cls,
-                                        roll=request.POST.get("roll"), gender=request.POST.get("gender"),
-                                        dob=request.POST.get("dob"), doa=request.POST.get("doa"),
-                                        aadhar_number=request.POST.get("aadhar_number"), phone_number=request.POST.get("phone_number"))
+                                    student_name=request.POST.get("student_name"),
+                                    fathers_name=request.POST.get("fathers_name"),
+                                    mothers_name=request.POST.get("mothers_name"),
+                                    admission_category=request.POST.get("admission_category"),
+                                    social_category=request.POST.get("social_category"),
+                                    uid=request.POST.get("uid"), cls=_cls,
+                                    roll=request.POST.get("roll"), gender=request.POST.get("gender"),
+                                    dob=request.POST.get("dob"), doa=request.POST.get("doa"),
+                                    aadhar_number=request.POST.get("aadhar_number"), phone_number=request.POST.get("phone_number"))
 
                 messages.success(request, get_create_success_message(new_stu.student_name, new_stu.uid), extra_tags='success')
                 return redirect("students:student-detail", uid=new_stu.uid)
@@ -198,6 +207,7 @@ def student_detail(request: HttpRequest, uid: str):
         if request.user.is_class_teacher():
             if stu.cls != request.user.teacher.teacher_of_class:
                 return HttpResponseForbidden("This student is not of your class")
+                
     except ObjectDoesNotExist:
         context = {
             'message_404': f'Student with UID <code class="code font-size-18 text-secondary">{uid}</code> was <span class="text-danger">not found</span>!'
@@ -261,25 +271,28 @@ def students_upload(request: HttpRequest):
     existing_students_list: list[Student] = []
 
     students_optional_subjects: dict[Student, list[Subject]] = {}
-    
+
     if request.method == 'POST' and request.FILES['students-file-input']:
         uploaded_file = request.FILES['students-file-input']
         fs = FileSystemStorage()
         filename = fs.save(f"{uuid.uuid4()}.csv", uploaded_file)
+
+        school_code = request.POST.get('school')
+        school = School.objects.get(school_code=school_code)
 
         data = pd.read_excel(filename)
         data = format_students_data(data)
         dt = data.to_dict("index")
 
         roll = 0
-        last_cls, last_sec = "", ""
+        last_cls: Class = None
 
         for d in dt.values():
             optional_subjects = []
 
             # If it's a normal Class, it's good to go....
             if d['cls'] in dict(CLASSES).values():
-                cls, cls_created = Class.objects.get_or_create(cls=d['cls'], section=d['section'])
+                cls, cls_created = Class.objects.get_or_create(cls=d['cls'], section=d['section'], school=school)
 
             # Oh no! those scary-n-weird class names :(
             else:
@@ -305,7 +318,7 @@ def students_upload(request: HttpRequest):
                     stream, without_subject = subject_part.split(" without ")
 
                 # Create the Class XI and XIIth way!
-                cls, cls_created = Class.objects.get_or_create(cls=cls_number, section=d['section'], stream=stream)
+                cls, cls_created = Class.objects.get_or_create(cls=cls_number, section=d['section'], stream=stream, school=school)
 
             rev_social_catergories = {v: k for k, v in dict(SOCIAL_CATEGORIES).items()}
             social_cat = dict(rev_social_catergories)[d['social_category']]
@@ -325,16 +338,15 @@ def students_upload(request: HttpRequest):
                     setattr(s, attr, val)
 
             # Roll No. stuff
-            if not last_cls: last_cls = cls.cls
-            if not last_sec: last_sec = cls.section
+            if last_cls == None: last_cls = cls
 
-            if cls.cls != last_cls: roll = 1
-            elif cls.section != last_sec: roll = 1
+            if cls.cls != last_cls.cls: roll = 1
+            elif cls.section != last_cls.section: roll = 1
+
             else: roll += 1
 
             setattr(s, 'roll', roll)
-            # TODO: Get School Code perfectly
-            setattr(s, 'school_code', '1819')
+            setattr(s, 'school', school)
 
             optional_subject_objects: list[Subject] = []
             if cls.cls in SUBJECTS_OPTIONAL_OUT_OF:
@@ -358,8 +370,7 @@ def students_upload(request: HttpRequest):
             else:
                 new_students_list.append(s)
 
-            last_cls = cls.cls
-            last_sec = cls.section
+            last_cls = cls
 
             # print(roll, last_cls, last_sec)
 

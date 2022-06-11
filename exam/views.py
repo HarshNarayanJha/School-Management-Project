@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib import messages
 
 from core.models import Class
 from core.constants import CLASSES
@@ -43,9 +44,11 @@ def exams(request: HttpRequest):
     exams_filter_section = request.GET.get('exams_filter_section', "").strip()
 
     initial_all_exams = Exam.objects.all()
+    if request.user.get_school():
+        initial_all_exams = initial_all_exams.filter(cls__school=request.user.get_school())
+
     if request.user.is_class_teacher():
-        initial_all_exams = Exam.objects.filter(cls__cls=request.user.teacher.teacher_of_class.cls,
-                                            cls__section=request.user.teacher.teacher_of_class.section)
+        initial_all_exams = Exam.objects.filter(cls=request.user.teacher.teacher_of_class)
 
         if (exams_filter_cls and exams_filter_cls != request.user.teacher.teacher_of_class.cls) \
             or exams_filter_section and exams_filter_section != request.user.teacher.teacher_of_class.section:
@@ -83,11 +86,17 @@ def exams(request: HttpRequest):
         pagination_get_parameters += f"&exams_filter_section={request.GET.get('exams_filter_section', '')}"
     pagination_get_parameters += f"&is_filter={bool(request.GET.get('is_filter', False))}"
 
+    if request.user.get_school():
+        classes = Class.get_schoolwise_classes_sections([request.user.get_school().school_code])
+    elif request.user.is_superuser:
+        classes = Class.get_schoolwise_classes_sections(None)
+    else:
+        raise Exception("User hasn't any school and is not super user!")
+
     context = {
         'exams': page_exams,
         'exam_types': list(EXAM_TYPES),
-        'classes': list(CLASSES),
-        'sections': Class.get_classwise_sections(),
+        'classes': classes,
         'num_all_exams': len(all_exams),
         'num_exams': len(page_exams),
         'is_filter': is_filter,
@@ -102,7 +111,7 @@ def exams(request: HttpRequest):
 def exam_add(request: HttpRequest):
 
     if request.method == "POST":
-        _cls: Class = Class.objects.get(cls=request.POST.get('cls'), section=request.POST.get('section'))
+        _cls: Class = Class.objects.get(cls=request.POST.get('cls'), section=request.POST.get('section'), school=request.user.get_school())
         if request.user.is_class_teacher():
             if request.user.teacher.teacher_of_class != _cls:
                 return HttpResponseForbidden(f"You are not authorized to create Exam for class {_cls}")
@@ -118,7 +127,6 @@ def exam_add(request: HttpRequest):
         # DID: ~takes~ *took* a horibble 20 seconds for class 9th (69 students)
         # But now, I optimised it now it's around 1.5 secs :)
         # But still heavy!
-        print(_cls.cls_subjects.all())
         # return redirect("exam:exam-add")
         for student in exam_students:
             result: Result = Result(exam=new_exam, student=student)
@@ -150,8 +158,7 @@ def exam_add(request: HttpRequest):
 
     context = {
         'exam_names': list(EXAM_TYPES) or [],
-        'classes': list(Class.get_classwise_sections().keys()) or [],
-        'sections': Class.get_classwise_sections(),
+        'classes': Class.get_schoolwise_classes_sections(),
     }
 
     context = prepare_dark_mode(request, context)
@@ -162,10 +169,14 @@ def exam_add(request: HttpRequest):
 @permission_required('exam.view_exam', raise_exception=True)
 def exam_detail(request: HttpRequest, exmid: int):
     try:
-        exam = Exam.objects.get(pk=exmid)
+        exam: Exam = Exam.objects.get(pk=exmid)
+        if request.user.get_school():
+            if request.user.get_school() != exam.cls.school:
+                return HttpResponseForbidden(f"You are not authorized to view Exam for school {exam.cls.school}")
+
         if request.user.is_class_teacher():
             if request.user.teacher.teacher_of_class != exam.cls:
-                return HttpResponseForbidden(f"You are not authorized to create Exam for class {exam.cls}")
+                return HttpResponseForbidden(f"You are not authorized to view Exam for class {exam.cls}")
 
     except ObjectDoesNotExist:
         context = {
@@ -191,8 +202,13 @@ def exam_detail(request: HttpRequest, exmid: int):
 def exam_edit(request: HttpRequest, exmid: int):
     exam: Exam = Exam.objects.get(pk=exmid)
 
+    if request.user.get_school():
+        if exam.cls.school != request.user.get_school():
+            return HttpResponseForbidden(f"You are not authorized to edit Exam for school {exam.cls.school}")
+
     if request.user.is_class_teacher():
         if exam.edited_by_class_teacher:
+            messages.error(request, f"Dear {request.user.teacher.teacher_name}, you have already edited the exam once. Class Teachers can edit exam only once.", extra_tags='danger')
             return redirect('exam:exam-detail', exmid=exmid)
 
         if request.user.teacher.teacher_of_class != exam.cls:
@@ -230,8 +246,9 @@ def exam_edit(request: HttpRequest, exmid: int):
 
                         result.marks_set.get_queryset().bulk_update(marks, ['marks_ob'])#, 'marks_mx'])
 
-        exam.edited_by_class_teacher = True
-        exam.save()
+        if request.user.is_class_teacher():
+            exam.edited_by_class_teacher = True
+            exam.save()
         return redirect('exams:exam-detail', exmid=exmid)
 
     context = {

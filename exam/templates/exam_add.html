@@ -63,11 +63,11 @@
 <script type="text/python3" type="module" id="exam_add_options">
     exam_names = {{ exam_names|safe }}
     classes = {{ classes|safe }}
-    sections = {{ sections|safe }}
 
     user_is_class_teacher = {{ request.user.is_class_teacher }}
     user_class_teacher_cls = "{{ request.user.teacher.teacher_of_class.cls }}"
     user_class_teacher_section = "{{ request.user.teacher.teacher_of_class.section }}"
+    user_school_code = "{{ request.user.get_school.school_code }}"
 </script>
 <script type="text/python" src="{% static 'py/exam_add_page.py' %}" ></script>
 {% endblock scripts %}

@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 
 from .constants import CLASSES, SUBJECTS, TeacherGroup, CLASS_SUBJECTS, ExamAdminGroup
-from .models import ExamAdmin, Subject, Teacher, Class
+from .models import ExamAdmin, School, Subject, Teacher, Class
 
 from school_management import settings
 from students.utils import get_birthdays, prepare_dark_mode
@@ -85,6 +85,19 @@ def debug(request: HttpRequest):
     return render(request, 'utils/debug.html', context=context)
 
 @login_required
+@permission_required('core.add_school', raise_exception=True)
+def debug_create_schools(request: HttpRequest):
+    schools = [
+        School(school_code='1819', school_name="Kendriya Vidyalaya No. 1 AFS Darbhanga",\
+                school_name_short="KV No. 1 AFS Darbhanga", city="Darbhanga"),
+        School(school_code='1820', school_name="Kendriya Vidyalaya No. 2 AFS Darbhanga",\
+                school_name_short="KV No. 2 AFS Darbhanga", city="Darbhanga"),
+    ]
+    School.objects.bulk_create(schools)
+
+    return redirect('core:debug')
+
+@login_required
 @permission_required('core.add_subject', raise_exception=True)
 def debug_create_subjects(request: HttpRequest):
     subject_objs = []
@@ -97,34 +110,90 @@ def debug_create_subjects(request: HttpRequest):
     return redirect('core:debug')
 
 @login_required
-@permission_required('core.add_class', raise_exception=True)
-def debug_create_classes(request: HttpRequest):
-    cls_objs = []
-    for cls in CLASSES:
-        if not Class.objects.filter(cls=cls[0]).exists():
-            _cls: Class = Class.objects.create(cls=cls[0])
+@permission_required('core.add_teacher', raise_exception=True)
+def debug_create_teachers(request: HttpRequest):
+    kv1 = School.objects.get(school_code='1819')
+    kv2 = School.objects.get(school_code='1820')
 
-            _cls_subjects_raw: list[str] = CLASS_SUBJECTS[_cls.cls]
-            cls_subjects: list[Subject] = []
+    cs = Subject.objects.get(subject_name="CS")
+    chem = Subject.objects.get(subject_name="CHEM")
+    eng = Subject.objects.get(subject_name="ENG")
+    bio = Subject.objects.get(subject_name="BIO")
 
-            for _sub in _cls_subjects_raw:
-                cls_subjects.append(Subject.objects.get_or_create(subject_name=_sub)[0])
+    cls_12_kv1 = Class.objects.get(cls='XII', section='A', school=kv1)
+    cls_12a_kv2 = Class.objects.get(cls='XII', section='A', school=kv2)
 
-            _cls.cls_subjects.set(cls_subjects)
-            cls_objs.append(_cls)
+    teas = [
+        # A Teacher without Class
+        Teacher(teacher_name='Abhijeet Singh Gureniya', user_name="abhigureniya",\
+                salary="12.25", subject=cs, school=kv1),
+        # Class Teacher
+        Teacher(teacher_name='KV 1 Class Teacher', user_name="kv1ct", teacher_of_class=cls_12_kv1,\
+                salary="20", subject=chem, school=kv1),
 
-    try:
-        # This gives integrity error with `student_class.id`.
-        # don't know why, but last class (12th) gets succesfully created, and all subjects assinged!
-        Class.objects.bulk_create(cls_objs)
-    except:
-        print("H" + "o"*15 + ":Err" + "o"*15 + "r")
-    
+        Teacher(teacher_name='KV 2 Teacher', user_name="kv2t",\
+                salary="13", subject=eng, school=kv2),
+        Teacher(teacher_name='KV 2 Class Teacher', user_name="kv2ct", teacher_of_class=cls_12a_kv2,\
+                salary="19.95", subject=bio, school=kv2),
+    ]
+    # Dont use .bulk_update(), because it won't call the signals and
+    # they are used for creating the user and groups stuff
+    for i in teas:
+        i.save()
+
     return redirect('core:debug')
+
+@login_required
+@permission_required('core.add_examadmin', raise_exception=True)
+def debug_create_admins(request: HttpRequest):
+    kv1 = School.objects.get(school_code='1819')
+    kv2 = School.objects.get(school_code='1820')
+
+    admins = [
+        ExamAdmin(admin_name='KV 1 Exam Admin', user_name="kv1admin", school=kv1),
+        ExamAdmin(admin_name='KV 2 Exam Admin', user_name="kv2admin", school=kv2),
+    ]
+    # Dont use .bulk_update(), because it won't call the signals and
+    # they are used for creating the user and groups stuff
+    for i in admins:
+        i.save()
+
+    return redirect('core:debug')
+
+# @login_required
+# @permission_required('core.add_class', raise_exception=True)
+# def debug_create_classes(request: HttpRequest):
+#     cls_objs = []
+#     for cls in CLASSES:
+#         if not Class.objects.filter(cls=cls[0]).exists():
+#             _cls: Class = Class.objects.create(cls=cls[0])
+
+#             _cls_subjects_raw: list[str] = CLASS_SUBJECTS[_cls.cls]
+#             cls_subjects: list[Subject] = []
+
+#             for _sub in _cls_subjects_raw:
+#                 cls_subjects.append(Subject.objects.get_or_create(subject_name=_sub)[0])
+
+#             _cls.cls_subjects.set(cls_subjects)
+#             cls_objs.append(_cls)
+
+#     try:
+#         # This gives integrity error with `student_class.id`.
+#         # don't know why, but last class (12th) gets succesfully created, and all subjects assinged!
+#         Class.objects.bulk_create(cls_objs)
+#     except:
+#         print("H" + "o"*15 + ":Err" + "o"*15 + "r")
+    
+#     return redirect('core:debug')
 
 @permission_required('core.view_teacher', raise_exception=True)
 def teachers(request: HttpRequest):
-    all_teachers = Teacher.objects.all()
+    if request.user.get_school():
+        all_teachers = Teacher.objects.filter(school=request.user.get_school())
+    elif request.user.is_superuser:
+        all_teachers = Teacher.objects.all()
+    else:
+        raise Exception("User hasn't any school and is not super user!")
 
     context = {
         'teachers': all_teachers,
@@ -138,7 +207,6 @@ def teachers(request: HttpRequest):
 def teacher_add(request: HttpRequest):
 
     if request.method == "POST":
-        print(request.POST)
         teacher_name = request.POST.get('teachers_name')
         username = request.POST.get('username')
         # password = request.POST.get('password')
@@ -150,8 +218,11 @@ def teacher_add(request: HttpRequest):
         if request.POST.get('class_teacher_of'):
             is_class_teacher = True
             _cls, _section = request.POST.get('class_teacher_of').split("-")
-            cls, cls_created = Class.objects.get_or_create(cls=_cls, section=_section)
+            cls, cls_created = Class.objects.get_or_create(cls=_cls, section=_section, school__school_code=request.POST.get('school'))
             same_cls_teacher = Teacher.objects.filter(teacher_of_class=cls)
+
+        school_code = request.POST.get('school')
+        school = School.objects.get(school_code=school_code)
 
         same_username = Teacher.objects.filter(user__username=username)
 
@@ -171,15 +242,24 @@ def teacher_add(request: HttpRequest):
                                 user_name=username,
                                 salary=salary,
                                 subject=Subject.objects.get(subject_name=subject),
-                                teacher_of_class=cls
+                                teacher_of_class=cls,
+                                school=school,
                             )
 
         messages.success(request, f"Teacher {new_teacher} successfully created", extra_tags='success')
         return redirect("core:home")
 
+    if request.user.get_school():
+        schools = [(s.school_code, str(s)) for s in School.objects.filter(school_code=request.user.get_school().school_code)]
+    elif request.user.is_superuser:
+        schools = [(s.school_code, str(s)) for s in School.get_all_schools()]
+    else:
+        raise Exception("User hasn't any school and is not super user!")
+
     context = {
         'subjects': dict(SUBJECTS),
-        'classes': Class.get_classwise_sections()
+        'classes': Class.get_schoolwise_classes_sections([x[0] for x in schools]),
+        'schools': schools,
     }
 
     context = prepare_dark_mode(request, context)

@@ -27,6 +27,7 @@ class MarksInline(nested_admin.NestedTabularInline):
 
         return super().formfield_for_choice_field(db_field, request, **kwargs)
 
+    # Complete Mess (due to the obj being None sometimes)...!
     def has_change_permission(self, request, obj: Exam=None):
         if request.user.is_class_teacher():
             if obj is not None:
@@ -135,9 +136,12 @@ class ResultsInline(nested_admin.NestedTabularInline):
             return True
 
 class ExamAdmin(nested_admin.NestedModelAdmin):
-    list_display = ("__str__", "session", "cls")
-    list_filter = ("exam_name", "session", "cls")
+    list_display = ("__str__", "school_code", "session", "cls")
+    list_filter = ("exam_name", "session", "cls__school__school_code", "cls")
     search_fields = ("exam_name", "session", "cls")
+
+    def school_code(self, exm):
+        return exm.cls.school.school_code
 
     fieldsets = (
         ("Exam Info", {'fields': ("exam_name", "session", "cls")}),

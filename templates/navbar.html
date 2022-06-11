@@ -14,7 +14,7 @@
   </a>
   
   <a href="https://github.com/HarshNarayanJha/School-Management-Project" 
-     class="navbar-text text-monospace text-decoration-none mt-5"
+     class="navbar-text text-monospace text-decoration-none mt-5 d-none d-lg-block"
      target="_blank">
     <kbd data-toggle="tooltip" data-placement="bottom" data-title="Star me on Github">v0.1 <span class="fab fa-github"></span></kbd>
   </a>
@@ -22,6 +22,9 @@
     <div class="navbar-content ml-auto d-none d-md-inline">
       <span class="badge bg-very-dark-dm bg-white-lm text-white-dm font-size-16 font-weight-bold">
         Welcome <span class="text-primary" data-toggle="tooltip" data-placement="bottom" data-title="Logged in as {{ request.user.user_type }}">{{ request.user.get_display_name }}</span>
+      </span>
+      <span class="badge bg-very-dark-dm bg-white-lm text-white-dm font-size-16 font-weight-bold">
+        of School <span class="text-primary" data-toggle="tooltip" data-placement="bottom" data-title="{{ request.user.get_school.school_name_short|default:'No School' }}">{{ request.user.get_school.school_code|default:'None' }}</span>
       </span>
     </div>
   {% endif %}
@@ -44,6 +47,13 @@
         <i class="fa fa-angle-down" aria-hidden="true"></i>
       </button>
       <div class="dropdown-menu dropdown-menu-right w-200" aria-labelledby="navbar-dropdown">
+        <a href="https://github.com/HarshNarayanJha/School-Management-Project" 
+          class="navbar-text text-monospace text-decoration-none my-5 d-lg-none"
+          target="_blank">
+          <kbd data-toggle="tooltip" data-placement="bottom" data-title="Star me on Github">v0.1 <span class="fab fa-github"></span></kbd>
+        </a>
+        <hr class="dropdown-divider d-lg-none" />
+
         {% if request.user.is_authenticated %}
           <a href="{% url 'core:logout' %}" class="dropdown-item bg-danger text-white rounded">Logout</a>
         {% else %}
@@ -72,11 +82,22 @@
         <a href="{% url 'exam:exams' %}" class="dropdown-item">Exam</a>
 
         <hr class="dropdown-divider" />
+        <a href="https://github.com/HarshNarayanJha/School-Management-Project" 
+          class="navbar-text text-monospace text-decoration-none my-5"
+          target="_blank">
+          <kbd data-toggle="tooltip" data-placement="bottom" data-title="Star me on Github">v0.1 <span class="fab fa-github"></span></kbd>
+        </a>
+        <hr class="dropdown-divider" />
+
         {% if request.user.is_authenticated %}
         <a href="#" class="dropdown-item badge bg-very-dark-dm bg-white-lm text-white-dm font-size-14 font-weight-bold d-flex justify-content-around">
           Welcome <span class="text-primary" data-toggle="tooltip" data-placement="bottom" data-title="Logged in as {{ request.user.user_type }}">{{ request.user.get_display_name }}</span>
         </a>
+        <a href="#" class="dropdown-item badge bg-very-dark-dm bg-white-lm text-white-dm font-size-14 font-weight-bold d-flex justify-content-around mt-5">
+          of School <span class="text-primary" data-toggle="tooltip" data-placement="bottom" data-title="{{ request.user.get_school.school_name_short|default:'No School' }}">{{ request.user.get_school.school_code|default:'None' }}</span>
+        </a>
         {% endif %}
+        <hr class="dropdown-divider" />
         {% if request.user.is_authenticated %}
           <a href="#" class="dropdown-item">{{ request.user.username }}</a>
           <a href="{% url 'core:logout' %}" class="dropdown-item bg-danger text-white rounded">Logout</a>
