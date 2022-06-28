@@ -3,10 +3,10 @@ from exam_add_options import classes, exam_names
 from exam_add_options import user_is_class_teacher, user_class_teacher_cls, user_class_teacher_section, user_school_code
 
 # Append the class options!
-for i in exam_names:
-    elem = html.OPTION(f"{i[1]}")
-    elem.attrs["id"] = f"exam_{i[0].lower()}"
-    elem.attrs["value"] = i[0]
+for i, name in exam_names:
+    elem = html.OPTION(f"{name}")
+    elem.attrs["id"] = f"exam_{i}"
+    elem.attrs["value"] = i
     document['exam_name'] <= elem
 
 if not user_is_class_teacher:

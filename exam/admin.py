@@ -3,7 +3,7 @@ from django.http import HttpRequest
 
 from students.models import Student
 from core.models import Class
-from .models import Exam, Result, Marks
+from .models import Exam, Result, Marks, ExamType
 from .forms import ResultsInlineFormSet
 import nested_admin
 
@@ -137,14 +137,14 @@ class ResultsInline(nested_admin.NestedTabularInline):
 
 class ExamAdmin(nested_admin.NestedModelAdmin):
     list_display = ("__str__", "school_code", "session", "cls")
-    list_filter = ("exam_name", "session", "cls__school__school_code", "cls")
-    search_fields = ("exam_name", "session", "cls")
+    list_filter = ("exam_type", "session", "cls__school__school_code", "cls")
+    search_fields = ("exam_type", "session", "cls")
 
     def school_code(self, exm):
         return exm.cls.school.school_code
 
     fieldsets = (
-        ("Exam Info", {'fields': ("exam_name", "session", "cls")}),
+        ("Exam Info", {'fields': ("exam_type", "session", "cls")}),
     )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -178,6 +178,7 @@ class ExamAdmin(nested_admin.NestedModelAdmin):
         return True
 
 # This is the Admin class of the class Exam
+admin.site.register(ExamType)
 admin.site.register(Exam, ExamAdmin)
 # These aren't registered in production
 # Can be registered for debugging...

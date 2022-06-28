@@ -2,7 +2,21 @@
 {% load static %}
 {% block content %}
 <div class="content">
+
     <h1>Exam Home</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.extra_tags }} mb-10 animated fast shake" role="alert">
+                <button class="close" data-dismiss="alert" type="button" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                <h4 class="alert-heading">Hey you, Exam Creator!</h4>
+                {{ message|safe }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <div class="card">
         <h5 class="card-title">Exam Home</h5>
         <hr class="sidebar-divider" />

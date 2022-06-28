@@ -7,7 +7,7 @@ from django.contrib import messages
 
 from core.models import Class
 from core.constants import CLASSES
-from .models import Exam, Marks, Result
+from .models import Exam, Marks, Result, ExamType
 from students.models import Student
 from students.utils import prepare_dark_mode
 from .constants import EXAM_TYPES
@@ -116,7 +116,7 @@ def exam_add(request: HttpRequest):
             if request.user.teacher.teacher_of_class != _cls:
                 return HttpResponseForbidden(f"You are not authorized to create Exam for class {_cls}")
 
-        new_exam: Exam = Exam.objects.create(exam_name=request.POST.get('exam_name'),
+        new_exam: Exam = Exam.objects.create(exam_type=ExamType.objects.get(pk=request.POST.get('exam_name')),
                                             session=request.POST.get('session'),
                                             cls=_cls)
 
@@ -157,13 +157,33 @@ def exam_add(request: HttpRequest):
         return redirect('exams:exam-edit', exmid=new_exam.id)
 
     context = {
-        'exam_names': list(EXAM_TYPES) or [],
-        'classes': Class.get_schoolwise_classes_sections([request.user.get_school()]),
+        'exam_names': ExamType.get_all_exam_types(),
+        'classes': Class.get_schoolwise_classes_sections([request.user.get_school().school_code]),
     }
 
     context = prepare_dark_mode(request, context)
 
     return render(request, 'exam_add.html', context=context)
+
+@login_required
+@permission_required('exam.add_examtype', raise_exception=True)
+def exam_type_add(request: HttpRequest):
+    if request.method == "POST":
+        exam_name = request.POST.get('exam_name')
+        exam_code = request.POST.get('exam_code')
+
+        exam_type, created = ExamType.objects.get_or_create(exam_name=exam_name, exam_code=exam_code)
+
+        if created:
+            messages.warning(request, f"Exam Type: {exam_type} already exists!", extra_tags='danger')
+            return redirect('exam:home')
+        
+        messages.success(request, f"Exam Type: {exam_type} was sucessfully created!", extra_tags='success')
+        return redirect('exam:home')
+
+    context = {}
+    context = prepare_dark_mode(request, context)
+    return render(request, 'exam_type_add.html', context=context)
 
 @login_required
 @permission_required('exam.view_exam', raise_exception=True)
@@ -214,7 +234,7 @@ def exam_edit(request: HttpRequest, exmid: int):
         if request.user.teacher.teacher_of_class != exam.cls:
             return HttpResponseForbidden(f"You are not authorized to create Exam for class {exam.cls}")
 
-    exam_students = Student.objects.filter(cls=exam.cls).order_by('roll')
+    exam_students = Student.objects.filter(cls=exam.cls)
 
     if request.method == "POST":
         # dict[SUBJECT_NAME, tuple(marks_list (in order of roll), max_marks)]
@@ -249,6 +269,7 @@ def exam_edit(request: HttpRequest, exmid: int):
         if request.user.is_class_teacher():
             exam.edited_by_class_teacher = True
             exam.save()
+            
         return redirect('exams:exam-detail', exmid=exmid)
 
     context = {

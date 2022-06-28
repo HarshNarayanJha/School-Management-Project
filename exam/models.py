@@ -7,12 +7,23 @@ from core.models import Class, Subject
 
 from .constants import EXAM_TYPES
 
+class ExamType(models.Model):
+    exam_name = models.CharField("Exam Name", max_length=50, null=False, blank=False)
+    exam_code = models.CharField("Exam Code", max_length=10, null=False, blank=False)
+
+    def __str__(self) -> str:
+        return f"[{self.exam_code}] {self.exam_name}"
+
+    @classmethod
+    def get_all_exam_types(self) -> "list[tuple[int, str]]":
+        return [(i.pk, str(i)) for i in ExamType.objects.all()]
+
 class ExamManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().order_by("session", "cls")
 
 class Exam(models.Model):
-    exam_name = models.CharField("Exam Name", max_length=50, choices=EXAM_TYPES, help_text="Select the type of exam from the dropdown.")
+    exam_type = models.ForeignKey(to=ExamType, on_delete=models.PROTECT, verbose_name="Exam Type", help_text="Select the type of exam from the dropdown.")
     session_regex = RegexValidator(r'^20\d{2}-20\d{2}$', "should be in the format 20XX-20XX")
     session = models.CharField("Exam Session", max_length=10, validators=[session_regex], help_text="Session of the exam. like 2021-2022")
     cls = models.ForeignKey(to=Class, verbose_name="Class", on_delete=models.PROTECT, blank=False, null=False, help_text="The class of which the exam is held. This will be pre-filled with your class if you are a class teacher.")
@@ -22,10 +33,10 @@ class Exam(models.Model):
     objects = ExamManager()
 
     def __str__(self) -> str:
-        return f"{self.exam_name} Examination ({self.session}) Class {self.cls}"
+        return f"{self.exam_type} Examination ({self.session}) Class {self.cls}"
 
     def display_exam_name(self) -> str:
-        return dict(EXAM_TYPES)[self.exam_name]
+        return self.exam_type
 
 class ResultManager(models.Manager):
     def get_queryset(self):
@@ -38,7 +49,7 @@ class Result(models.Model):
     objects = ResultManager()
 
     def __str__(self) -> str:
-        return f"Result: {self.student.student_name} (Class: {self.student.cls}, Roll: {self.student.roll}) [{self.exam.exam_name} {self.exam.session}]"
+        return f"Result: {self.student.student_name} (Class: {self.student.cls}, Roll: {self.student.roll}) [{self.exam.exam_type.exam_code} {self.exam.session}]"
 
 class Marks(models.Model):
     class Meta:

@@ -48,6 +48,9 @@
       <a href="{% url 'exams:exam-add' %}" class="sidebar-link">Add Exam</a>
       <a href="/admin/exam/exam/add/" class="sidebar-link">Add Exam (Admin)</a>
       {% endif %}
+      {% if perms.exam.add_examtype %}
+      <a href="{% url 'exams:exam-type-add' %}" class="sidebar-link">Add Exam Type</a>
+      {% endif %}
       <!-- <a href="#" class="sidebar-link">Map</a> -->
       <!-- <a href="#" class="sidebar-link">Messenger</a> -->
       {% else %}

@@ -89,6 +89,11 @@ GROUPS = {
         "exam.view_exam",
         "exam.delete_exam",
 
+        "exam.add_examtype",
+        "exam.change_examtype",
+        "exam.view_examtype",
+        "exam.delete_examtype",
+
         "exam.add_result",
         "exam.change_result",
         "exam.view_result",
@@ -102,6 +107,8 @@ GROUPS = {
     TeacherGroup.GROUP_NAME: [
         "students.view_student",
         "core.view_teacher",
+
+        "exam.view_examtype",
 
         "exam.add_exam",
         "exam.change_exam",
