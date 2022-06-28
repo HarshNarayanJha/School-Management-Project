@@ -10,7 +10,9 @@
         <!-- Title section -->
         <div class="d-flex justify-content-between">
             <h2 class="text-success-dm text-primary-lm d-inline">{{ exam.display_exam_name }}</h2>
+            {% if perms.exam.change_exam %}
             <a href="{% url 'exams:exam-edit' exmid=exam.id %}" class="btn btn-secondary btn-action mt-auto mb-auto"><span class="ion ion-edit"></span>&nbsp;Edit</a>
+            {% endif %}
         </div>
         {% if messages %}
             {% for message in messages %}

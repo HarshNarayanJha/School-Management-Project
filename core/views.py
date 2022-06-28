@@ -79,6 +79,9 @@ def logout(request: HttpRequest):
 
 @login_required
 def debug(request: HttpRequest):
+    if not request.user.is_superuser:
+        return redirect("core:home")
+        
     context = {}
 
     context = prepare_dark_mode(request, context)
@@ -87,6 +90,9 @@ def debug(request: HttpRequest):
 @login_required
 @permission_required('core.add_school', raise_exception=True)
 def debug_create_schools(request: HttpRequest):
+    if not request.user.is_superuser:
+        return redirect("core:home")
+
     schools = [
         School(school_code='1819', school_name="Kendriya Vidyalaya No. 1 AFS Darbhanga",\
                 school_name_short="KV No. 1 AFS Darbhanga", city="Darbhanga"),
@@ -100,6 +106,9 @@ def debug_create_schools(request: HttpRequest):
 @login_required
 @permission_required('core.add_subject', raise_exception=True)
 def debug_create_subjects(request: HttpRequest):
+    if not request.user.is_superuser:
+        return redirect("core:home")
+
     subject_objs = []
     for subject in SUBJECTS:
         if not Subject.objects.filter(subject_name=subject[0]).exists():
@@ -112,6 +121,9 @@ def debug_create_subjects(request: HttpRequest):
 @login_required
 @permission_required('core.add_teacher', raise_exception=True)
 def debug_create_teachers(request: HttpRequest):
+    if not request.user.is_superuser:
+        return redirect("core:home")
+
     kv1 = School.objects.get(school_code='1819')
     kv2 = School.objects.get(school_code='1820')
 
@@ -146,6 +158,9 @@ def debug_create_teachers(request: HttpRequest):
 @login_required
 @permission_required('core.add_examadmin', raise_exception=True)
 def debug_create_admins(request: HttpRequest):
+    if not request.user.is_superuser:
+        return redirect("core:home")
+        
     kv1 = School.objects.get(school_code='1819')
     kv2 = School.objects.get(school_code='1820')
 

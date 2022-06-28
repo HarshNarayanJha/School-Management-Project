@@ -11,7 +11,9 @@
 
       <div class="d-flex justify-content-between">
         <p class="m-0 font-size-24">Teachers</p>
+        {% if perms.core.add_teacher %}
         <a href="{% url 'core:teacher-add' %}" class="btn btn-primary btn-rounded mt-auto mb-auto"><span class="ion ion-ios-plus-outline"></span>&nbsp;Add Teacher</a>
+        {% endif %}
       </div>
 
       <!-- Filter Form (Collapsable!!! yoo hoooooo...) -->
@@ -142,8 +144,16 @@
               <th>{{ teacher.subject }}</th>
               <th>{{ teacher.teacher_of_class }}</th>
               <th>
+                {% if perms.core.view_teacher %}
                 <a href="{% url 'core:teacher-detail' tid=teacher.pk %}" class="btn btn-sm btn-rounded btn-success"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
+                {% else %}
+                <a href="#" class="btn btn-sm btn-rounded btn-success disabled" data-toggle="tooltip" data-title="You can't view teacher"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
+                {% endif %}
+                {% if perms.core.change_teacher %}
                 <a href="{% url 'core:teacher-edit' tid=teacher.pk %}" class="btn btn-sm btn-rounded btn-secondary"><span class="fa fa-edit">&nbsp;&nbsp;</span>Edit</a>
+                {% else %}
+                <a href="#" class="btn btn-sm btn-rounded btn-secondary disabled" data-toggle="tooltip" data-title="You can't edit teacher"><span class="fa fa-edit">&nbsp;&nbsp;</spa>Edit</a>
+                {% endif %}
               </th>
             </tr>
             {% endfor %}

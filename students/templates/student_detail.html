@@ -23,7 +23,12 @@
     {% endif %}
 
     <div class="card">
-        <h2 class="text-primary">{{ stu.student_name }} <a href="{% url 'students:student-edit' uid=stu.uid %}" class="ion ion-edit font-size-16 text-light-dm text-dark-lm">(&nbsp;Edit)</a></h2>
+        <div class="d-flex justify-content-between">
+            <h2 class="text-primary">{{ stu.student_name }}</h2>
+            {% if perms.students.change_student %}
+            <a href="{% url 'students:student-edit' uid=stu.uid %}" class="btn btn-secondary btn-action mt-auto mb-auto"><span class="ion ion-edit"></span>&nbsp;Edit</a>
+            {% endif %}
+        </div>
 
         <div class="row">
             <div class="card bg-very-dark-dm bg-white-lm col-lg-5 col-11">

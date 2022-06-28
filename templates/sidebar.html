@@ -10,33 +10,48 @@
           
       </div>
       
+      {% if request.user.is_authenticated %}
+
       <h5 class="sidebar-title"><a href="{% url 'students:home' %}" class="text-light-dm">Students</a></h5>
       <div class="sidebar-divider"></div>
-      <!-- <a href="{% url 'students:home' %}" class="sidebar-link">Students</a> -->
+      {% if perms.students.view_student %}
       <a href="{% url 'students:students' %}" class="sidebar-link">Students</a>
       <a href="/admin/students/student" class="sidebar-link">Students (Admin)</a>
+      {% endif %}
+      {% if perms.students.add_student %}
       <a href="{% url 'students:student-add' %}" class="sidebar-link">Add Student</a>
       <a href="/admin/students/student/add/" class="sidebar-link">Add Student (Admin)</a>
+      {% endif %}
 
       <br />
 
       <h5 class="sidebar-title"><a href="{% url 'core:teachers' %}" class="text-light-dm">Teachers</a></h5>
       <div class="sidebar-divider"></div>
+      {% if perms.core.view_teacher %}
       <a href="{% url 'core:teachers' %}" class="sidebar-link">Teachers</a>
       <a href="/admin/core/teacher/" class="sidebar-link">Teachers (Admin)</a>
+      {% endif %}
+      {% if perms.core.add_teacher %}
       <a href="{% url 'core:teacher-add' %}" class="sidebar-link">Add Teacher</a>
       <a href="/admin/core/teacher/add/" class="sidebar-link">Add Teacher (Admin)</a>
+      {% endif %}
 
       <br />
 
       <h5 class="sidebar-title"><a href="{% url 'exams:home' %}" class="text-light-dm">Exams</a></h5>
       <div class="sidebar-divider"></div>
-      <!-- <a href="{% url 'exams:home' %}" class="sidebar-link">Exam Home</a> -->
+      {% if perms.exam.view_exam %}
       <a href="{% url 'exams:exams' %}" class="sidebar-link">Exams</a>
       <a href="/admin/exam/exam/" class="sidebar-link">Exams (Admin)</a>
+      {% endif %}
+      {% if perms.exam.add_exam %}
       <a href="{% url 'exams:exam-add' %}" class="sidebar-link">Add Exam</a>
       <a href="/admin/exam/exam/add/" class="sidebar-link">Add Exam (Admin)</a>
+      {% endif %}
       <!-- <a href="#" class="sidebar-link">Map</a> -->
       <!-- <a href="#" class="sidebar-link">Messenger</a> -->
+      {% else %}
+      <h5 class="sidebar-title text-primary">Kindly Login please...</h5>
+      {% endif %}
     </div>
   </div>

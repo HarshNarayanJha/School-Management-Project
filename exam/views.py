@@ -158,7 +158,7 @@ def exam_add(request: HttpRequest):
 
     context = {
         'exam_names': list(EXAM_TYPES) or [],
-        'classes': Class.get_schoolwise_classes_sections(),
+        'classes': Class.get_schoolwise_classes_sections([request.user.get_school()]),
     }
 
     context = prepare_dark_mode(request, context)

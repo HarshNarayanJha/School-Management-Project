@@ -37,6 +37,7 @@
         </p>
     </div>
 
+    {% if perms.students.add_student %}
     <div class="card">
         <h5 class="card-title">
             Bulk Upload Students via CSV File
@@ -59,6 +60,7 @@
         <!-- <a href="{% static 'samplefile/Sample_File.csv' %}"><h6>Click here to Download Template CSV For Data Uploading</h6></a> -->
     </div>
 </div>
+{% endif %}
 {% endblock content %}
 
 {% block scripts %}

@@ -192,7 +192,7 @@ def student_add(request: HttpRequest):
         'genders': list(GENDERS),
         'admission_categories': list(ADMISSION_CATEGORIES),
         'social_categories': list(SOCIAL_CATEGORIES),
-        'classes': Class.get_classwise_sections()
+        'classes': Class.get_classwise_sections([request.user.get_school()])
     }
 
     context = prepare_dark_mode(request, context)

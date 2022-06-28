@@ -26,11 +26,13 @@
         Excepturi tempora, voluptatum sit quis maxime molestiae architecto ea impedit?
     </div>
 
+    {% if request.user.is_superuser %}
     <div class="card">
         <h5 class="card-title">Dev Links</h5>
         <div class="card-content">
             <div><a href="{% url 'core:debug' %}">Debug</a></div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock content %}

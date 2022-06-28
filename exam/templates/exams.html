@@ -11,7 +11,9 @@
 
         <div class="d-flex justify-content-between">
             <p class="m-0 font-size-24">Exams</p>
+            {% if perms.exam.add_exam %}
             <a href="{% url 'exams:exam-add' %}" class="btn btn-primary btn-rounded mt-auto mb-auto"><span class="ion ion-ios-plus-outline"></span>&nbsp;Create New Exam</a>
+            {% endif %}
         </div>
 
         <hr class="sidebar-divider m-20" />
@@ -102,8 +104,17 @@
                   <th>{{ exam.session }}</th>
                   <th>{{ exam.cls }}</th>
                   <th>
+                    {% if perms.exam.view_exam %}
                     <a href="{% url 'exams:exam-detail' exmid=exam.id %}" class="btn btn-sm btn-rounded btn-success"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
+                    {% else %}
+                    <a href="#" class="btn btn-sm btn-rounded btn-success" data-toggle="tooltip" data-title="You can't view exam"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
+                    {% endif %}
+
+                    {% if perms.exam.change_exam %}
                     <a href="{% url 'exams:exam-edit' exmid=exam.id %}" class="btn btn-sm btn-rounded btn-secondary"><span class="fa fa-edit">&nbsp;&nbsp;</span>Edit</a>
+                    {% else %}
+                    <a href="#" class="btn btn-sm btn-rounded btn-secondary" data-toggle="tooltip" data-title="You can't edit exam"><span class="fa fa-edit">&nbsp;&nbsp;</span>Edit</a>
+                    {% endif %}
                   </th>
                 </tr>
                 {% endfor %}
