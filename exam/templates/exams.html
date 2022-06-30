@@ -11,9 +11,12 @@
 
         <div class="d-flex justify-content-between">
             <p class="m-0 font-size-24">Exams</p>
-            {% if perms.exam.add_exam %}
-            <a href="{% url 'exams:exam-add' %}" class="btn btn-primary btn-rounded mt-auto mb-auto"><span class="ion ion-ios-plus-outline"></span>&nbsp;Create New Exam</a>
-            {% endif %}
+            <div>
+                {% if perms.exam.add_exam %}
+                <a href="{% url 'exams:exam-add' %}" class="btn btn-primary btn-rounded mt-auto mb-auto"><span class="ion ion-ios-plus-outline"></span>&nbsp;Create New Exam</a>
+                {% endif %}
+                <a href="{% url 'exams:exam-calculate-result' %}" class="btn btn-success btn-rounded mt-auto mb-auto"><span class="ion ion-ios-paper"></span>&nbsp;Calculate Result For</a>
+            </div>
         </div>
 
         <hr class="sidebar-divider m-20" />
@@ -42,7 +45,7 @@
 
                 <div class="d-flex flex-column flex-lg-row justify-content-around">
                     <div class="form-group form-inline">
-                        <label for="exams_filter_name">Find/Filter by Exam Name:</label>
+                        <label for="exams_filter_name">Find/Filter by Exam Type:</label>
                         <select class="form-control" name="exams_filter_name" id="exams_filter_name">
                         </select>
                     </div>

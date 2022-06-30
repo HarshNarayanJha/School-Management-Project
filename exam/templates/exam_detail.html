@@ -38,15 +38,9 @@
         <hr class="sidebar-divider">
 
         <div class="mt-20">
-            <!-- {% for result in exam.result_set.get_queryset %}
-                <h1>{{ result.student }}</h1>
-                {% for mark in result.marks_set.get_queryset %}
-                    <p>{{ mark }}</p>
-                {% endfor %}
-            {% endfor %} -->
 
             {% for result in exam.result_set.get_queryset %}
-            <div class="card bg-very-dark-dm bg-light-lm mx-0" id="{{ student.uid }}">
+            <div class="card bg-very-dark-dm bg-light-lm mx-0" id="{{ result.student.uid }}">
                 <div class="d-flex flex-md-row flex-column">
 
                     <div class="col-md-3 col-12 bg-dark-dm bg-white-lm mr-20 p-card">
@@ -90,6 +84,14 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="card ml-auto mr-auto w-150 h-auto p-5 text-center bg-transparent0 border-0 my-10">
+                    <div class="container m-0 border bg-very-dark-dm bg-light-lm py-10 px-10">
+                        <span class="font-size-20 font-weight-bold w-three-quarter badge badge-primary">{{ result.get_marks_obtained }}</span>
+                        <hr class="bg-light-dm bg-dark-lm" />
+                        <span class="font-size-22 font-weight-bolder w-three-quarter badge badge-success">{{ result.get_maximum_marks }}</span>
+                    </div>
+                    <span class="font-size-20 font-weight-semi-bold text-primary">{{ result.get_calculated_result|floatformat:3 }} %</span>
                 </div>
             </div>
             {% endfor %}

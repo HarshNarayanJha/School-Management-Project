@@ -3,7 +3,7 @@ from django.http import HttpRequest
 
 from students.models import Student
 from core.models import Class
-from .models import Exam, Result, Marks, ExamType
+from .models import Exam, Result, Marks, ExamType, ExamSet
 from .forms import ResultsInlineFormSet
 import nested_admin
 
@@ -177,8 +177,30 @@ class ExamAdmin(nested_admin.NestedModelAdmin):
 
         return True
 
+class ExamTypeInline(admin.TabularInline):
+    model = ExamType
+    extra = 4
+    min_num = 1
+
+    def get_extra(self, request, obj=None, **kwargs) -> int:
+        if obj and obj.examtype_set.get_queryset().count() > 1:
+            return 0
+        return 4
+
+class ExamTypeAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "weightage", "exam_set")
+    list_editable = ("weightage",)
+    search_fields = ("exam_name", "exam_code")
+
+class ExamSetAdmin(admin.ModelAdmin):
+    list_display = ("name", "cls")
+    list_filter = ("cls", )
+
+    inlines = [ExamTypeInline]
+
 # This is the Admin class of the class Exam
-admin.site.register(ExamType)
+admin.site.register(ExamSet, ExamSetAdmin)
+admin.site.register(ExamType, ExamTypeAdmin)
 admin.site.register(Exam, ExamAdmin)
 # These aren't registered in production
 # Can be registered for debugging...

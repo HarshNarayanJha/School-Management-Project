@@ -1,3 +1,4 @@
+import re
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.core.exceptions import ObjectDoesNotExist
@@ -7,7 +8,7 @@ from django.contrib import messages
 
 from core.models import Class
 from core.constants import CLASSES
-from .models import Exam, Marks, Result, ExamType
+from .models import Exam, ExamSet, Marks, Result, ExamType
 from students.models import Student
 from students.utils import prepare_dark_mode
 from .constants import EXAM_TYPES
@@ -116,7 +117,14 @@ def exam_add(request: HttpRequest):
             if request.user.teacher.teacher_of_class != _cls:
                 return HttpResponseForbidden(f"You are not authorized to create Exam for class {_cls}")
 
-        new_exam: Exam = Exam.objects.create(exam_type=ExamType.objects.get(pk=request.POST.get('exam_name')),
+        exam_type = ExamType.objects.get(pk=request.POST.get('exam_name'))
+        if Exam.objects.filter(exam_type=exam_type,
+                                session=request.POST.get('session'),
+                                cls=_cls).exists():
+            messages.warning(request, f"{exam_type} in session {request.POST.get('session')} of Class {_cls} is already added!", extra_tags='danger')
+            return redirect('exam:exam-add')
+
+        new_exam: Exam = Exam.objects.create(exam_type=exam_type,
                                             session=request.POST.get('session'),
                                             cls=_cls)
 
@@ -155,15 +163,45 @@ def exam_add(request: HttpRequest):
             Marks.objects.bulk_create(mark_set)
 
         return redirect('exams:exam-edit', exmid=new_exam.id)
-
+        
     context = {
         'exam_names': ExamType.get_all_exam_types(),
-        'classes': Class.get_schoolwise_classes_sections([request.user.get_school().school_code]),
+        'classes': Class.get_schoolwise_classes_sections(None),
     }
 
     context = prepare_dark_mode(request, context)
 
     return render(request, 'exam_add.html', context=context)
+
+@login_required
+@permission_required('exam.add_examset', raise_exception=True)
+def exam_set_add(request: HttpRequest):
+    if request.method == "POST":
+        exam_set_name = request.POST.get('exam_set_name')
+        cls = request.POST.get('cls')
+
+        exam_set, created = ExamSet.objects.get_or_create(name=exam_set_name, cls=cls)
+
+        if not created:
+            messages.warning(request, f"Exam Set: {exam_set} already exists!", extra_tags='danger')
+            return redirect('exam:home')
+        
+        messages.success(request, f"Exam Type: {exam_set} was sucessfully created!", extra_tags='success')
+        return redirect('exam:home')
+
+    if request.user.get_school():
+        classes = Class.get_schoolwise_classes_sections([request.user.get_school().school_code])
+    elif request.user.is_superuser:
+        classes = Class.get_schoolwise_classes_sections(None)
+    else:
+        raise Exception("User hasn't any school and is not super user!")
+
+    context = {
+        'classes': classes,
+    }
+
+    context = prepare_dark_mode(request, context)
+    return render(request, 'exam_set_add.html', context=context)
 
 @login_required
 @permission_required('exam.add_examtype', raise_exception=True)
@@ -174,7 +212,7 @@ def exam_type_add(request: HttpRequest):
 
         exam_type, created = ExamType.objects.get_or_create(exam_name=exam_name, exam_code=exam_code)
 
-        if created:
+        if not created:
             messages.warning(request, f"Exam Type: {exam_type} already exists!", extra_tags='danger')
             return redirect('exam:home')
         
@@ -279,3 +317,61 @@ def exam_edit(request: HttpRequest, exmid: int):
 
     context = prepare_dark_mode(request, context)
     return render(request, 'exam_edit.html', context=context)
+
+@login_required
+def exam_calculate_result(request: HttpRequest):
+
+    if request.method == "POST":
+        exam_set: ExamSet = ExamSet.objects.get(pk=request.POST.get('exam_set'))
+        session = request.POST.get('session')
+
+        exams_considered = Exam.objects.filter(cls__cls=exam_set.cls, session=session)
+        exams_considered_types = [x.exam_type for x in exams_considered]
+        if all([x in exams_considered_types for x in exam_set.examtype_set.get_queryset()]):
+            # This Means all exams in the Exam Set are conducted!
+            # Now we have to calculate the result based on weightage
+            final_result = {}
+
+            for exam in exams_considered:
+                # print(f"{exam.exam_type} (W={exam.exam_type.weightage}%) -> {exam.get_calculated_result()} %")
+                _result = exam.get_calculated_result()
+                for stu in _result:
+                    _result[stu] *= (exam.exam_type.weightage / 100)
+                    if stu in final_result:
+                        final_result[stu] += _result[stu]
+                    else:
+                        final_result[stu] = _result[stu]
+
+            # print(f"Final Result: {final_result['171819116000143']} %")
+
+            context = {
+                'exam_set': exam_set,
+                'cls': exams_considered[0].cls,
+                'session': exams_considered[0].session,
+                'final_result': final_result,
+            }
+            context = prepare_dark_mode(request, context)
+            return render(request, 'exam_result.html', context=context)
+            # print(exams_considered[0].get_calculated_result())
+        else:
+            messages.warning(request, f"Check your brain. All Exams in the Exam Set\
+                <span class=\"font-weight-bold text-primary\">{exam_set}</span> hasn't been conducted yet for the session\
+                <span class=\"font-weight-bold text-secondary\">{session}</span>. Aaya bara result banane wala!", extra_tags='danger')
+            conducted = []
+            not_conducted = []
+            for x in exam_set.examtype_set.get_queryset():
+                if x in exams_considered_types:
+                    conducted.append(x)
+                else:
+                    not_conducted.append(x)
+
+            print(f"Exams Conducted: {conducted}\nExams Not Conducted: {not_conducted}")
+            return redirect('exam:exam-calculate-result')
+    
+    context = {
+        'exam_sets': [(x.pk, str(x)) for x in ExamSet.objects.all()],
+        'sessions': {x.session for x in Exam.objects.all()},
+    }
+    context = prepare_dark_mode(request, context)
+
+    return render(request, 'exam_result_calculate.html', context=context)

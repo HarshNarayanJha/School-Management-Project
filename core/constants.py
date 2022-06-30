@@ -94,6 +94,11 @@ GROUPS = {
         "exam.view_examtype",
         "exam.delete_examtype",
 
+        "exam.add_examset",
+        "exam.change_examset",
+        "exam.view_examset",
+        "exam.delete_examset",
+
         "exam.add_result",
         "exam.change_result",
         "exam.view_result",
@@ -109,6 +114,7 @@ GROUPS = {
         "core.view_teacher",
 
         "exam.view_examtype",
+        "exam.view_examset",
 
         "exam.add_exam",
         "exam.change_exam",
