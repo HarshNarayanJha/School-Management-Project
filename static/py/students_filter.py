@@ -25,9 +25,9 @@ if not user_is_cls_teacher:
     document['students_filter_cls'] <= cls_none
     print(classes)
     for i in classes:
-        elem = html.OPTION(f"{i[1]}")
-        elem.attrs["id"] = f"students_filter_cls_{i[1].lower()}"
-        elem.attrs["value"] = i[1]
+        elem = html.OPTION(f"{i}")
+        elem.attrs["id"] = f"students_filter_cls_{i.lower()}"
+        elem.attrs["value"] = i
         document['students_filter_cls'] <= elem
 
     # pre-select the correct option!
@@ -46,9 +46,9 @@ if not user_is_cls_teacher:
         sec_none.attrs["value"] = ''
         document['students_filter_section'] <= sec_none
         if current_cls:
-            sects = sections[current_cls.upper()]
+            sects = classes[current_cls.upper()]
         else:
-            sects = max(sections.values(), key=lambda m: len(m))
+            sects = max(classes.values(), key=lambda m: len(m))
         for i in sects:
             elem = html.OPTION(f"{i}")
             elem.attrs["id"] = f"students_filter_section_{i.lower()}"

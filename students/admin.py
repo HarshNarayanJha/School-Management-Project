@@ -32,7 +32,7 @@ class ResultInline(nested_admin.NestedStackedInline):
 class StudentAdmin(nested_admin.NestedModelAdmin):
     list_display = ("student_name", "school_code", "uid", "dob", "cls", "roll", "gender", "phone_number")
     ordering = ("school__school_code", "cls", "roll", "student_name")
-    list_filter = ("school__school_code", "gender", "cls")
+    list_filter = ("school__school_code", "gender")
     search_fields = ("student_name", "uid", "dob", "phone_number")
 
     def school_code(self, stu):

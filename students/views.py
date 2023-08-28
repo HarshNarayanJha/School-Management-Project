@@ -141,7 +141,7 @@ def students(request: HttpRequest):
         'num_all_students': len(all_students),
         'num_students': len(page_students),
         'is_filter': is_filter,
-        'classes': Class.get_classwise_sections(request.user.get_school()),
+        'classes': Class.get_classwise_sections(request.user.get_school()) or {"No School is Asscociated with you": ["NA"]},
         'genders': GENDERS or [],
         'pagination_get_parameters': pagination_get_parameters,
     }
@@ -192,7 +192,7 @@ def student_add(request: HttpRequest):
         'genders': list(GENDERS),
         'admission_categories': list(ADMISSION_CATEGORIES),
         'social_categories': list(SOCIAL_CATEGORIES),
-        'classes': Class.get_classwise_sections([request.user.get_school()])
+        'classes': Class.get_classwise_sections(request.user.get_school()) or {"No School Associated With You": "NA"}
     }
 
     context = prepare_dark_mode(request, context)

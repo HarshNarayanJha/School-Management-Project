@@ -64,13 +64,13 @@ def exams(request: HttpRequest):
 
         if exams_filter_cls:
             all_exams = initial_all_exams.filter(
-                                exam_name__icontains=exams_filter_name,
+                                exam_type__exam_name__icontains=exams_filter_name,
                                 session__icontains=exams_filter_session,
                                 cls__cls=exams_filter_cls,
                                 cls__section__icontains=exams_filter_section)
         else:
             all_exams = initial_all_exams.filter(
-                                exam_name__startswith=exams_filter_name,
+                                exam_type__exam_name__icontains=exams_filter_name,
                                 session__icontains=exams_filter_session)
     else:
         is_filter = False
@@ -324,38 +324,79 @@ def exam_calculate_result(request: HttpRequest):
     if request.method == "POST":
         exam_set: ExamSet = ExamSet.objects.get(pk=request.POST.get('exam_set'))
         session = request.POST.get('session')
-
-        exams_considered = Exam.objects.filter(cls__cls=exam_set.cls, session=session)
+        if not request.user.is_superuser:
+            exams_considered: "list[Exam]" = Exam.objects.filter(cls__cls=exam_set.cls, session=session, cls__school=request.user.get_school())
+        else:
+            exams_considered: "list[Exam]" = Exam.objects.filter(cls__cls=exam_set.cls, session=session)
+            
         exams_considered_types = [x.exam_type for x in exams_considered]
-        if all([x in exams_considered_types for x in exam_set.examtype_set.get_queryset()]):
+
+        is_allowed = False
+
+        if request.user.is_class_teacher():
+            if request.user.teacher.teacher_of_class.cls == exam_set.cls:
+                is_allowed = True
+        elif request.user.is_examadmin():
+            is_allowed = True
+        elif request.user.is_superuser:
+            is_allowed = True
+        
+        if not is_allowed:
+            return HttpResponseForbidden(f"You are not Allowed to View Result for class {exam_set.cls}")
+
+
+        if exams_considered and all([x in exams_considered_types for x in exam_set.examtype_set.get_queryset()]):
             # This Means all exams in the Exam Set are conducted!
-            # Now we have to calculate the result based on weightage
+            # ~Now we have to calculate the result based on weightage~
+            # But now, we want to pass the real full result to the resultcard, with all fields
+            # The format:
+            # {'student': {'subject': {'exam_type': marks}}}
             final_result = {}
 
             for exam in exams_considered:
                 # print(f"{exam.exam_type} (W={exam.exam_type.weightage}%) -> {exam.get_calculated_result()} %")
-                _result = exam.get_calculated_result()
-                for stu in _result:
-                    _result[stu] *= (exam.exam_type.weightage / 100)
-                    if stu in final_result:
-                        final_result[stu] += _result[stu]
+                exam_results = exam.result_set.get_queryset()
+                for result in exam_results:
+                    marks = result.marks_set.get_queryset()
+                    if result.student in final_result:
+                        for mark in marks:
+                            if mark.subject in final_result[result.student]:
+                                if mark.marks_ob:
+                                    final_result[result.student][mark.subject][exam.exam_type.exam_code] = mark.marks_ob
+                            else:
+                                if mark.marks_ob:
+                                    final_result[result.student][mark.subject] = {exam.exam_type.exam_code: mark.marks_ob}
                     else:
-                        final_result[stu] = _result[stu]
+                        final_result[result.student] = {}
+                        for mark in marks:
+                            if mark.subject in final_result[result.student]:
+                                if mark.marks_ob:
+                                    final_result[result.student][mark.subject][exam.exam_type.exam_code] = mark.marks_ob
+                            else:
+                                if mark.marks_ob:
+                                    final_result[result.student][mark.subject] = {exam.exam_type.exam_code: mark.marks_ob}
 
             # print(f"Final Result: {final_result['171819116000143']} %")
+
+            for r in final_result:
+                print(r)
+                print(final_result[r])
+                # print(final_result[r][0].marks_set.get_queryset()[0].subject)
+                print()
 
             context = {
                 'exam_set': exam_set,
                 'cls': exams_considered[0].cls,
                 'session': exams_considered[0].session,
-                'final_result': final_result,
+                'result': final_result,
             }
+
             context = prepare_dark_mode(request, context)
             return render(request, 'exam_result.html', context=context)
             # print(exams_considered[0].get_calculated_result())
         else:
             messages.warning(request, f"Check your brain. All Exams in the Exam Set\
-                <span class=\"font-weight-bold text-primary\">{exam_set}</span> hasn't been conducted yet for the session\
+                <span class=\"font-weight-bold text-primary\">{exam_set}</span> haven't been conducted yet for the session\
                 <span class=\"font-weight-bold text-secondary\">{session}</span>. Aaya bara result banane wala!", extra_tags='danger')
             conducted = []
             not_conducted = []

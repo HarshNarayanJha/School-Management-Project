@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-    School Management | Students
+    School Management | Teachers
 {% endblock title %}
 
 {% block content %}
@@ -19,7 +19,8 @@
       <!-- Filter Form (Collapsable!!! yoo hoooooo...) -->
       <details id="filter_collapse" class="collapse-panel card mx-0 pl-20 mb-10 bg-very-dark-dm bg-light-lm p-10">
         <summary class="collapse-header card-title border-0">
-          Filters and Controls 
+          <!-- TODO: Add Teacher Filter -->
+          Filters and Controls (NOT IMPLEMENTED YET)
           {% if is_filter %}
             <span class="text-secondary-dm text-primary-lm text-monospace">[filter applied]</span>:
           {% endif %}
@@ -27,8 +28,8 @@
         <div class="collapse-content border-0">
           <form action="." method="get">
             <div class="form-group form-inline w-200">
-              <label for="students_per_page">Students per page:</label>
-              <select class="form-control" name="students_per_page" id="students_per_page">
+              <label for="teachers_per_page">Teachers per page:</label>
+              <select class="form-control" name="teachers_per_page" id="teachers_per_page">
                 <option id="stu_per_page_10" value="10">10</option>
                 <option id="stu_per_page_20" value="20">20</option>
                 <option id="stu_per_page_50" value="50">50</option>
@@ -41,39 +42,39 @@
             <div class="d-flex flex-column flex-lg-row justify-content-around">
 
               <div class="form-group form-inline">
-                <label for="students_filter_name">Find/Filter by Student Name:</label>
-                <input type="text" name="students_filter_name" id="students_filter_name" class="form-control w-350" value="{{ request.GET.students_filter_name }}">
+                <label for="teachers_filter_name">Find/Filter by Teacher Name:</label>
+                <input type="text" name="teachers_filter_name" id="teachers_filter_name" class="form-control w-350" value="{{ request.GET.teachers_filter_name }}">
               </div>
 
               <div class="form-group form-inline">
-                <label for="students_filter_uid">Find/Filter by Student UID:</label>
-                <input type="text" name="students_filter_uid" id="students_filter_uid" class="form-control w-250" pattern="[0-9]{7,8,9,10,11,12,13,14,15,16}" maxlength="16" value="{{ request.GET.students_filter_uid }}">
+                <label for="teachers_filter_uid">Find/Filter by Teacher UID:</label>
+                <input type="text" name="teachers_filter_uid" id="teachers_filter_uid" class="form-control w-250" pattern="[0-9]{7,8,9,10,11,12,13,14,15,16}" maxlength="16" value="{{ request.GET.teachers_filter_uid }}">
               </div>
 
             </div>
             <div class="d-flex flex-column flex-lg-row justify-content-around">
 
               <div class="form-group form-inline">
-                <label for="students_filter_phone">Find/Filter by Phone Number:</label>
-                <input type="text" name="students_filter_phone" id="students_filter_phone" class="form-control w-200" pattern="[0-9]{5,6,7,8,9,10}" maxlength="10" value="{{ request.GET.students_filter_phone }}">
+                <label for="teachers_filter_phone">Find/Filter by Phone Number:</label>
+                <input type="text" name="teachers_filter_phone" id="teachers_filter_phone" class="form-control w-200" pattern="[0-9]{5,6,7,8,9,10}" maxlength="10" value="{{ request.GET.teachers_filter_phone }}">
               </div>
 
               <div class="form-group form-inline">
-                <label for="students_filter_aadhar">Find/Filter by Student Aadhar Number:</label>
-                <input type="text" name="students_filter_aadhar" id="students_filter_aadhar" class="form-control w-250" pattern="[0-9]{12}" maxlength="12" value="{{ request.GET.students_filter_aadhar }}">
+                <label for="teachers_filter_aadhar">Find/Filter by Teacher Aadhar Number:</label>
+                <input type="text" name="teachers_filter_aadhar" id="teachers_filter_aadhar" class="form-control w-250" pattern="[0-9]{12}" maxlength="12" value="{{ request.GET.teachers_filter_aadhar }}">
               </div>
             </div>
 
             <div class="d-flex flex-column flex-lg-row justify-content-around">
 
               <div class="form-group form-inline">
-                <label for="students_filter_mother">Find/Filter by Mother's Name:</label>
-                <input type="text" name="students_filter_mother" id="students_filter_mother" class="form-control w-200" value="{{ request.GET.students_filter_mother }}">
+                <label for="teachers_filter_mother">Find/Filter by Mother's Name:</label>
+                <input type="text" name="teachers_filter_mother" id="teachers_filter_mother" class="form-control w-200" value="{{ request.GET.teachers_filter_mother }}">
               </div>
 
               <div class="form-group form-inline">
-                <label for="students_filter_father">Find/Filter by Father's Name:</label>
-                <input type="text" name="students_filter_father" id="students_filter_father" class="form-control w-250" value="{{ request.GET.students_filter_father }}">
+                <label for="teachers_filter_father">Find/Filter by Father's Name:</label>
+                <input type="text" name="teachers_filter_father" id="teachers_filter_father" class="form-control w-250" value="{{ request.GET.teachers_filter_father }}">
               </div>
             </div>
             
@@ -81,22 +82,22 @@
             <div class="d-flex flex-lg-row justify-content-start">
 
               <div class="form-group form-inline w-200 mr-10">
-                <label for="students_filter_cls">Filter by Class:</label>
-                <select class="form-control" name="students_filter_cls" id="students_filter_cls">
+                <label for="teachers_filter_cls">Filter by Class:</label>
+                <select class="form-control" name="teachers_filter_cls" id="teachers_filter_cls">
                 </select>
               </div>
 
               <div class="form-group form-inline w-200">
-                <label for="students_filter_section">Filter by Section:</label>
-                <select class="form-control" name="students_filter_section" id="students_filter_section">
+                <label for="teachers_filter_section">Filter by Section:</label>
+                <select class="form-control" name="teachers_filter_section" id="teachers_filter_section">
                 </select>
               </div>
             </div>
             {% endif %}
 
             <div class="form-group form-inline w-200">
-              <label for="students_filter_gender">Filter by Gender:</label>
-              <select class="form-control" name="students_filter_gender" id="students_filter_gender">
+              <label for="teachers_filter_gender">Filter by Gender:</label>
+              <select class="form-control" name="teachers_filter_gender" id="teachers_filter_gender">
               </select>
             </div>
 
@@ -109,9 +110,9 @@
         </div>
         <div class="alert alert-secondary filled-lm">
           {% if is_filter %}
-            <p class="m-0 font-size-16"><span class="text-primary font-weight-semi-bold">{{ num_all_students }}</span> Student{{ num_all_students|pluralize }} filtered !</p>
+            <p class="m-0 font-size-16"><span class="text-primary font-weight-semi-bold">{{ num_all_teachers }}</span> Teacher{{ num_all_teachers|pluralize }} filtered !</p>
           {% else %}
-            <p class="m-0 font-size-16"><span class="text-primary font-weight-semi-bold">{{ num_all_students }}</span> total Student{{ num_all_students|pluralize }} !</p>
+            <p class="m-0 font-size-16"><span class="text-primary font-weight-semi-bold">{{ num_all_teachers }}</span> total Teacher{{ num_all_teachers|pluralize }} !</p>
           {% endif %}
         </div>
       </details>
@@ -145,7 +146,8 @@
               <th>{{ teacher.teacher_of_class }}</th>
               <th>
                 {% if perms.core.view_teacher %}
-                <a href="{% url 'core:teacher-detail' tid=teacher.pk %}" class="btn btn-sm btn-rounded btn-success"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
+                <!-- TODO: Add Teacher Detail -->
+                <a href="{% url 'core:teacher-detail' tid=teacher.pk %}" class="btn btn-sm btn-rounded btn-success disabled" data-toggle="tooltip" data-title="Not Implemented Yet"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
                 {% else %}
                 <a href="#" class="btn btn-sm btn-rounded btn-success disabled" data-toggle="tooltip" data-title="You can't view teacher"><span class="fa fa-book-open">&nbsp;&nbsp;</span>Details</a>
                 {% endif %}
@@ -238,16 +240,16 @@
             <div class="w-50">
               <input type="number" class="form-control text-center" name="page" id="page-number">
               
-              <input type="hidden" value="{{ request.GET.students_per_page }}" name="students_per_page">
-              <input type="hidden" value="{{ request.GET.students_filter_name }}" name="students_filter_name">
-              <input type="hidden" value="{{ request.GET.students_filter_uid }}" name="students_filter_uid">
-              <input type="hidden" value="{{ request.GET.students_filter_phone }}" name="students_filter_phone">
-              <input type="hidden" value="{{ request.GET.students_filter_aadhar }}" name="students_filter_aadhar">
-              <input type="hidden" value="{{ request.GET.students_filter_mother }}" name="students_filter_mother">
-              <input type="hidden" value="{{ request.GET.students_filter_father }}" name="students_filter_father">
-              <input type="hidden" value="{{ request.GET.students_filter_cls }}" name="students_filter_cls">
-              <input type="hidden" value="{{ request.GET.students_filter_section }}" name="students_filter_section">
-              <input type="hidden" value="{{ request.GET.students_filter_gender }}" name="students_filter_gender">
+              <input type="hidden" value="{{ request.GET.teachers_per_page }}" name="teachers_per_page">
+              <input type="hidden" value="{{ request.GET.teachers_filter_name }}" name="teachers_filter_name">
+              <input type="hidden" value="{{ request.GET.teachers_filter_uid }}" name="teachers_filter_uid">
+              <input type="hidden" value="{{ request.GET.teachers_filter_phone }}" name="teachers_filter_phone">
+              <input type="hidden" value="{{ request.GET.teachers_filter_aadhar }}" name="teachers_filter_aadhar">
+              <input type="hidden" value="{{ request.GET.teachers_filter_mother }}" name="teachers_filter_mother">
+              <input type="hidden" value="{{ request.GET.teachers_filter_father }}" name="teachers_filter_father">
+              <input type="hidden" value="{{ request.GET.teachers_filter_cls }}" name="teachers_filter_cls">
+              <input type="hidden" value="{{ request.GET.teachers_filter_section }}" name="teachers_filter_section">
+              <input type="hidden" value="{{ request.GET.teachers_filter_gender }}" name="teachers_filter_gender">
               <input type="hidden" value="{{ is_filter }}" name="is_filter">
             </div>
           </form>
@@ -260,7 +262,7 @@
 
 {% block scripts %}
 {% comment %}
-<!-- <script type="text/python" type="module" id="students_filter_options">
+<!-- <script type="text/python" type="module" id="teachers_filter_options">
   is_filter = {{ is_filter }}
   request_get = {{ request.GET.dict|safe }}
 
@@ -270,6 +272,6 @@
 
   user_is_cls_teacher = {{ request.user.is_class_teacher }}
 </script>
-<script type="text/python" src="{% static 'py/students_filter.py' %}"></script> -->
+<script type="text/python" src="{% static 'py/teachers_filter.py' %}"></script> -->
 {% endcomment %}
 {% endblock scripts %}

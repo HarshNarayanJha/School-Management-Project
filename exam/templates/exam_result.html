@@ -4,6 +4,11 @@
     School Management | Exams | Class {{ cls }}: {{ exam_set }} ({{ session }})
 {% endblock title %}
 
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/exam/resultcard.css' %}">
+{% endblock css %}
+
 {% block content %}
 <div class="content">
     <div class="card">
@@ -36,19 +41,19 @@
 
         <div class="mt-20">
 
-            {% for stu, result in final_result.items %}
-            <div class="card bg-very-dark-dm bg-light-lm mx-0" id="{{ stu.uid }}">
-                <div class="d-flex flex-md-row flex-column">
-
-                    <div class="col-md-3 col-12 bg-dark-dm bg-white-lm mr-20 p-card">
-                        <span class="card-title">Roll No. <span class="text-secondary-dm code font-size-24">{{ stu.roll }}</span></span>
-                        <div class="font-size-20 text-primary font-weight-bold">
-                            <a href="{% url 'students:student-detail' uid=stu.uid %}" target="_blank" class="text-decoration-none">{{ stu.student_name }}</a>
-                        </div>
+            {% for stu, subjects in result.items %}
+            <div class="card bg-very-dark-dm bg-light-lm mx-0 p-5" id="{{ stu.uid }}">
+                <div class="bg-dark-dm bg-white-lm mr-20 p-card">
+                    <span class="card-title">Roll No. <span class="text-secondary-dm code font-size-24">{{ stu.roll }}</span></span>
+                    <div class="font-size-20 text-primary font-weight-bold">
+                        <a href="{% url 'students:student-detail' uid=stu.uid %}" target="_blank" class="text-decoration-none">{{ stu.student_name }}</a>
                     </div>
-                    <div class="card text-center">
-                        <span class="font-size-20 font-weight-semi-bold">Net Result = <span class="text-primary">{{ result|floatformat:3 }} %</span></span>
+                    <hr class="sidebar-divider my-15" />
+                    <button id="print-result-{{ stu.uid }}" class="btn btn-lg btn-secondary w-full">Print Result</button>
+                    <div id="result-card-{{ stu.uid }}" class="card p-0 m-10 bg-white text-dark table-scrollable">
+                        {% include 'utils/exam_result_template.html' with student=stu subjects=subjects session=session %}
                     </div>
+                    <!-- <span class="font-size-20 font-weight-semi-bold">Net Result = <span class="text-primary">{{ result|floatformat:3 }} %</span></span> -->
                 </div>
             </div>
             {% endfor %}
@@ -56,3 +61,45 @@
     </div>
 </div>
 {% endblock content %}
+
+{% block scripts %}
+<script src="{% static '/js/jspdf@2.5.1_dist_jspdf.umd.js' %}"></script>
+<script>window.jsPDF = window.jspdf.jsPDF;</script>
+<script src="{% static '/js/html2canvas.js' %}"></script>
+<script>window.html2canvas = html2canvas;</script>
+<script src="{% static '/js/html2pdf-0.9.3.js' %}"></script>
+<script>
+    window.html2pdf = html2pdf;
+
+    var element = document.getElementById('result-card');
+    // var opt = {
+    //     margin:       0,
+    //     filename:     'result.pdf',
+    //     image:        { type: 'jpeg', quality: 0.95},
+    //     html2canvas:  { scale: 1, windowWidth: element.scrollWidth, windowHeight: element.scrollHeight },
+    //     jsPDF:        { unit: 'mm', format: [297, 455], orientation: 'portrait', compress: true }
+    // };
+
+    // // New Promise-based usage:
+    // $("#print-result").on("click", (ev) => {
+    //     ev.preventDefault();
+    //     html2pdf().set(opt).from(element).save();
+    // });
+
+    // Default export is a4 paper, portrait, using millimeters for units
+    var doc = new jsPDF({ unit: 'mm', format: "a4", orientation: 'portrait', compress: true });
+    
+    {% for stu, subjects in result.items %}
+    $("#print-result-{{ stu.uid }}").on("click", (ev) => {
+        ev.preventDefault();
+        doc.html(document.getElementById("result-card-{{ stu.uid }}"), {
+            callback: function (doc) {
+                doc.save();
+            },
+            html2canvas: {scale: 0.1925},
+            filename: "result.pdf",
+        });
+    });
+    {% endfor %}
+</script>
+{% endblock scripts %}

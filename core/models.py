@@ -44,16 +44,26 @@ class Class(models.Model):
         for _cls in Class.objects.filter(cls=self.cls, school=self.school):
             sects.append(_cls.section)
         return sects
+    
+    def next_cls(self) -> "Class":
+        next_index = CLASSES.index((self.cls, self.cls))
+        if next_index < len(CLASSES) - 1:
+            return Class.objects.get(cls=CLASSES[next_index][0], section=self.section, school=self.school)
+        else:
+            return None
 
     @classmethod
-    def get_classwise_sections(self, school_code: str) -> "dict[str, list[str]]":
+    def get_classwise_sections(self, school: School) -> "dict[str, list[str]]":
         """
         Returns the mapping of all Classes and their sections of a given school
         """
         sections = {}
-        for _cls in Class.objects.filter(school__school_code=school_code):
-            sections[_cls.cls] = _cls.get_sections()
-        return sections
+        if school:
+            for _cls in Class.objects.filter(school__school_code=school.school_code):
+                sections[_cls.cls] = _cls.get_sections()
+            return sections
+        else:
+            return None
 
     @classmethod
     def get_schoolwise_classes_sections(self, school_codes: "list[str]") -> "dict[str, dict[str, list[str]]]":
@@ -65,7 +75,7 @@ class Class(models.Model):
         schoolwise_classes = {}
         schools = School.objects.filter(school_code__in=school_codes) if school_codes else School.objects.all()
         for sc in schools:
-            schoolwise_classes[sc.school_code] = Class.get_classwise_sections(sc.school_code)
+            schoolwise_classes[sc.school_code] = Class.get_classwise_sections(sc)
         return schoolwise_classes
 
     def get_optional_subjects(self):
@@ -75,6 +85,19 @@ class Class(models.Model):
                 for sub in subs: optional_subjects.append(sub)
 
         return optional_subjects
+
+class SubjectExtras(models.Model):
+    class Meta:
+        verbose_name = "Subject Extras"
+        verbose_name_plural = "Subject Extras"
+
+    tag = models.CharField(max_length=20, verbose_name='Tag/Name', blank=False, null=False)
+    weightage = models.FloatField("Weightage", null=False, blank=False)
+
+    subject = models.ForeignKey('core.Subject', verbose_name='Subject', on_delete=models.CASCADE, blank=False, null=False)
+
+    def __str__(self) -> str:
+        return f"{self.tag} - {self.weightage}% [{self.subject}]"
 
 class Subject(models.Model):
 

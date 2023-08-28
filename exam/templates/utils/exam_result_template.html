@@ -1,0 +1,212 @@
+{% load filters %}
+
+<div class="border p-card">
+    <div class="d-flex flex-row justify-content-between">
+        <img src="/static/img/cbse_logo.jpeg" alt="cbse" height="200">
+        <div>
+            <p class="text-center font-weight-bold font-size-20">KENDRIYA VIDYALAYA SANGATHAN</p>
+            <p class="text-center font-weight-bold font-size-18 mb-0 pb-0">{{ student.school.school_name }}</p>
+            <p class="text-center font-size-16 pt-0 mt-0">{{ student.school.school_name }}</p>
+            <p class="text-center font-size-18">Academic Session: {{ session }}</p>
+
+        </div>
+        <img src="/static/img/kvs_logo.jpeg" alt="kvs" height="200">
+    </div>
+    
+    <p class="text-center font-weight-bold font-size-20 text-decoration-underline">Report Card</p>
+
+    <div id="details">
+        <p class="font-size-18">Roll No: <span class="font-weight-bold">{{ student.roll }}</span></p>
+        <p class="font-size-18">Student's Name: <span class="font-weight-bold">{{ student.student_name }}</span></p>
+        <p class="font-size-18">Mother's/ Father's/ Guardian's Name: <span class="font-weight-bold">{{ student.fathers_name }}</span></p>
+        <p class="font-size-18">Date of Birth: <span class="font-weight-bold">{{ student.dob|date:'d/m/Y' }}</span></p>
+        <p class="font-size-18">Class/Section: <span class="font-weight-bold">{{ student.cls.cls }} {{ student.cls.section }}</span></p>
+    </div>
+
+    <div id="marks">
+        <table class="table table-primary table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th colspan="1">Scholstic Areas:</th>
+                    <th colspan="6">Term 1 - (100 Marks)</th>
+                    <th colspan="6">Term 2 - (100 Marks)</th>
+                </tr>
+                <tr>
+                    <th>Subjects</th>
+
+                    <th>Periodic Test (10)</th>
+                    <th>Note Book (5)</th>
+                    <th>Sub Enrich. (5)</th>
+                    <th>Half Yearly (80)</th>
+                    <th>Marks Obtained (100)</th>
+                    <th>Grade</th>
+
+                    <th>Periodic Test (10)</th>
+                    <th>Note Book (5)</th>
+                    <th>Sub Enrich. (5)</th>
+                    <th>Annual Exam (80)</th>
+                    <th>Marks Obtained (100)</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <th>{{ subject }}</th>
+
+                    <td>{{ subjects|get_item:subject|get_item:'PT-1' }}</td>
+                    <td>{{ nb1 }}</td>
+                    <td>{{ se1 }}</td>
+                    <td>{{ subjects|get_item:subject|get_item:'PB' }}</td>
+                    {% with a=subjects|get_item:subject|get_item:'PT-1' b=subjects|get_item:subject|get_item:'PB' %}
+                    <td>{{ a|add:b }}</td>
+                    {% endwith %}
+                    <td>{{ grade1 }}</td>
+
+                    <td>{{ pt2 }}</td>
+                    <td>{{ nb2 }}</td>
+                    <td>{{ se2 }}</td>
+                    <td>{{ subjects|get_item:subject|get_item:'SE' }}</td>
+                    <td>{{ subjects|get_item:subject|get_item:'SE' }}</td>
+                    <td>{{ grade2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="sidebar-divider m-20"></div>
+
+    <div id="co-scho" class="d-flex flex-row">
+        <table id="t1" class="table table-primary table-bordered mr-10 table-sm">
+            <thead>
+                <tr>
+                    <th>Co-Scholastic Areas (on a 3-point grading scale, A-C)</td>
+                </tr>
+                <tr>
+                    <th>Term 1</td>
+                    <th>Grade</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ co_scho_area }}</td>
+                    <td>{{ co_scho_grade }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table id="t2" class="table table-primary table-bordered ml-10 table-sm">
+            <thead>
+                <tr>
+                    <th>Co-Scholastic Areas (on a 3-point grading scale, A-C)</td>
+                </tr>
+                <tr>
+                    <th>Term 1</td>
+                    <th>Grade</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ co_scho_area }}</td>
+                    <td>{{ co_scho_grade }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <hr class="sidebar-divider" />
+
+    <div id="discipline" class="d-flex flex-row">
+        <table id="t1" class="table table-primary table-bordered mr-10 table-sm">
+            <thead>
+                <tr>
+                    <th>Term 1</td>
+                    <th>Grade</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Discipline (on a 3-point grading scale, A-C)</td>
+                    <td>{{ discipline_grade }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table id="t1" class="table table-primary table-bordered ml-10 table-sm">
+            <thead>
+                <tr>
+                    <th>Term 1</td>
+                    <th>Grade</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Discipline (on a 3-point grading scale, A-C)</td>
+                    <td>{{ discipline_grade }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="footer-details">
+        <p class="font-size-16 pb-20">Class Teacher's Remarks: <span class="font-italic text-uppercase">{{ remarks }}</span></p>
+        <p class="font-size-18 font-weight-bold pb-20">Promoted to Class: <span class="font-weight-bold">{{ student.cls.next_cls.cls|default:"Passed Out" }} {{ student.cls.next_cls.section|default:"" }}</span></p>
+
+        <div class="d-flex flex-row justify-content-between">
+            <p class="font-size-14">Date: <span class="text-decoration-underline">&nbsp;&nbsp;{{ date }}&nbsp;&nbsp;</span></p>
+            <p class="font-size-14">Signature of Class Teacher</p>
+            <p class="font-size-14">Principal</p>
+        </div>
+    </div>
+
+    <hr class="sidebar-divider" />
+
+    <div id="footer">
+        <p class="text-center text-decoration-underline font-weight-bold">Instructions</p>
+        <p class="text-center">Grading Scales for scholastic areas: Grades are awarded on a 8-point scale as follows:-</p>
+
+        <table class="table table-primary table-bordered table-sm w-300 m-auto table-sm">
+            <thead>
+                <tr>
+                    <th>Marks Range</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>91-100</td>
+                    <td>A1</td>
+                </tr>
+                <tr>
+                    <td>81-90</td>
+                    <td>A2</td>
+                </tr>
+                <tr>
+                    <td>71-80</td>
+                    <td>B1</td>
+                </tr>
+                <tr>
+                    <td>61-70</td>
+                    <td>B2</td>
+                </tr>
+                <tr>
+                    <td>51-60</td>
+                    <td>C1</td>
+                </tr>
+                <tr>
+                    <td>41-50</td>
+                    <td>C2</td>
+                </tr>
+                <tr>
+                    <td>33-40</td>
+                    <td>D</td>
+                </tr>
+                <tr>
+                    <td>32 and Below</td>
+                    <td>E <small>(Needs Improvement)</small></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

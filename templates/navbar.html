@@ -35,6 +35,11 @@
     <li class="nav-item">
       <a href="{% url 'exam:exams' %}" class="nav-link">Exam</a>
     </li>
+    {% if request.user.is_staff %}
+    <li class="nav-item">
+      <a href="/admin" class="nav-link">Admin Site</a>
+    </li>
+    {% endif %}
 
     <div class="dropdown with-arrow">
       <button class="btn" data-toggle="dropdown" type="button" id="navbar-dropdown">

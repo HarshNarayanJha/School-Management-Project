@@ -1,0 +1,16 @@
+.table-sm th {
+    padding: 0.5rem;
+}
+
+.table-sm td {
+    padding: 0.5rem;
+}
+
+.table-scrollable {
+    overflow-x: auto;
+}
+
+/* #result-card > div {
+    width: 1240px;
+    height: 1754px;
+} */

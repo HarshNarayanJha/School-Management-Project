@@ -281,7 +281,9 @@ def teacher_add(request: HttpRequest):
     return render(request, 'teachers/teacher_add.html', context=context)
 
 def teacher_detail(request: HttpRequest, tid: int):
+    # TODO: Add Teacher Detail
     pass
 
 def teacher_edit(request: HttpRequest, tid: int):
+    # TODO: Add Teacher Edit
     pass

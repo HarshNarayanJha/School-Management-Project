@@ -5,7 +5,7 @@ from exam.models import Exam
 
 from students.models import Student
 
-from .models import Subject, ExamAdmin, Teacher, Class, School
+from .models import Subject, ExamAdmin, Teacher, Class, School, SubjectExtras
 
 class ExamAdminAdmin(admin.ModelAdmin):
     list_display = ("admin_name", "user_name", "school_code")
@@ -70,6 +70,13 @@ class SchoolAdmin(admin.ModelAdmin):
     ordering = ("school_code",)
     list_filter = ("city", )
     search_fields = ("school_code", "school_name", "school_name_short", "city")
+
+class SubjectExtrasInline(admin.TabularInline):
+    model = SubjectExtras
+    extra = 2
+
+class SubjectAdmin(admin.ModelAdmin):
+    inlines = [SubjectExtrasInline]
 
 def is_class_teacher(user):
     """
@@ -152,6 +159,7 @@ School.add_to_class('get_exams', get_exams)
 
 admin.site.register(School, SchoolAdmin)
 admin.site.register(Class, ClassAdmin)
-admin.site.register(Subject)
+admin.site.register(Subject, SubjectAdmin)
+# admin.site.register(SubjectExtras)
 admin.site.register(ExamAdmin, ExamAdminAdmin)
 admin.site.register(Teacher, TeacherAdmin)
